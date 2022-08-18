@@ -48,7 +48,14 @@ class S826(object):
         s826dll.S826_DacDataWrite(BOARD,chan,setpoint,0)
 
 
-    def s826_aiPin(self):
+    def s826_aiPin(self,aiV):
         adcbuf = [0]*16
         slotlist = 0xFFFF
-        s826dll.S826_AdcRead(BOARD, adcbuf, NULL, &slotlist, TMAX)
+        errcode = s826dll.S826_AdcRead(BOARD, adcbuf, NULL, &slotlist, TMAX)
+        if errcode == s826dll.S826_ERR_MISSEDTRIG:
+            errcode = s826dll.S826_ERR_OK
+        # Read adc value for each channel
+        for i in range(16):
+            aiV[i] = adcbuf[i] && 0xFFFF
+
+        return errcode, aiV

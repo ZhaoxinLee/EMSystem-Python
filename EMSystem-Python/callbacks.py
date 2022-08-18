@@ -2,7 +2,6 @@
 from PyQt5.QtCore import QFile, QRegExp, QTimer, Qt, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMenu, QMessageBox
 from s826 import S826
-from subThread import SubThread
 import time
 
 #=========================================================
@@ -10,6 +9,9 @@ import time
 #=========================================================
 qtCreatorFile = "mainwindow.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
+
+
+monitor = S826()
 
 #=========================================================
 # a class that handles the signal and callbacks of the GUI
@@ -107,7 +109,8 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.dsb_subThreadParam2.valueChanged.connect(self.thrd.setParam2)
         self.dsb_subThreadParam3.valueChanged.connect(self.thrd.setParam3)
         self.dsb_subThreadParam4.valueChanged.connect(self.thrd.setParam4)
-        self.dsb_desiredSeparation.valueChanged.connect(self.setDesiredSeparation)
+
+        #self.lbl_temp_0.setText()
 
 
     #=====================================================
@@ -128,6 +131,8 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.hsld_xGradient.valueChanged.connect(lambda value: self.dsb_xGradient.setValue(float(value/100)))
         self.hsld_yGradient.valueChanged.connect(lambda value: self.dsb_yGradient.setValue(float(value/100)))
         self.hsld_zGradient.valueChanged.connect(lambda value: self.dsb_zGradient.setValue(float(value/100)))
+
+
     #=====================================================
     # Thread Example
     #=====================================================
@@ -240,6 +245,3 @@ class GUI(QMainWindow,Ui_MainWindow):
             self.thrd.setup(subThreadName)
             self.thrd.start()
             print('Subthread "{}" starts.'.format(subThreadName))
-
-    def setDesiredSeparation(self,val):
-        vision.setSeparation(val)

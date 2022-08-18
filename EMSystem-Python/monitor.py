@@ -18,3 +18,8 @@ PIN_POS_T7 = 36
 class Monitor(object):
     def __init__(self,dac):
         self.dac = dac
+        self.aiVoltage = [0]*16 # 16 input channels of analog voltage
+
+    def setMonitor(self):
+        err, aiVoltage = self.dac.s826_aiPin(aiVoltage)
+        self.aiVoltage = aiVoltage
