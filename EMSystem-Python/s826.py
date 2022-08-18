@@ -1,6 +1,7 @@
 from ctypes import cdll
 s826dll = cdll.LoadLibrary("./lib826_64.so")
-BOARD = 0
+BOARD = 1 # The board identifier is assumed to be always 0 (All switches OFF).
+TMAX = 500 # ADC. Max time allowed to read analog signals
 RANGE_PARAM = [[0,5],[0,10],[-5,10],[-10,20]] # rangeCode = 0, 1, 2, 3     [lowerV,rangeV]
 
 
@@ -45,3 +46,9 @@ class S826(object):
         rangeV = self.rangeV[chan]
         setpoint = int((outputV-lowerV)/rangeV*0xffff)
         s826dll.S826_DacDataWrite(BOARD,chan,setpoint,0)
+
+
+    def s826_aiPin(self):
+        adcbuf = [0]*16
+        slotlist = 0xFFFF
+        s826dll.S826_AdcRead(BOARD, adcbuf, NULL, &slotlist, TMAX)

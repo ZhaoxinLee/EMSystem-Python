@@ -195,26 +195,6 @@ class GUI(QMainWindow,Ui_MainWindow):
         field.setZGradient(10,self.dsb_zGradient.value())
         field.setMagnitude(0)
 
-    # vision tab
-    def on_chb_bypassFilters(self,state):
-        vision.setStateFiltersBypassed(state)
-        # vision2.setStateFiltersBypassed(state)
-
-    def on_btn_refreshFilterRouting(self):
-        vision.createFilterRouting(self.editor_vision.toPlainText().splitlines())
-        # vision2.createFilterRouting(self.editor_vision.toPlainText().splitlines())
-
-    def on_btn_snapshot(self):
-        vision.setStateSnapshotEnabled(True)
-        # vision2.setStateSnapshotEnabled(True)
-
-    def on_chb_objectDetection(self,state):
-        algorithm = self.cbb_objectDetectionAlgorithm.currentText()
-        vision.setStateObjectDetection(state,algorithm)
-        # vision2.setStateObjectDetection(state,algorithm)
-        self.cbb_objectDetectionAlgorithm.setEnabled(not state)
-        vision.clearAgentDrawing(state)
-        # vision2.clearAgentDrawing(state)
 
     # subthread
     def on_cbb_subThread(self,subThreadName):
