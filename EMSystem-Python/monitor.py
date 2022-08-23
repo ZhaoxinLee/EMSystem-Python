@@ -22,7 +22,7 @@ class Monitor(object):
         self.measuredData = [0]*16
 
     def setMonitor(self):
-        err, aiVoltage = self.dac.s826_aiPin(self.aiVoltage)
+        aiVoltage = self.dac.s826_aiPin(self.aiVoltage)
         self.aiVoltage = aiVoltage
         currentSenseAdj = [6.7501, 6.6705, 6.4118, 3.8831, 6.7703, 6.7703, 6.7107, 6.8500]
         tempSenseAdj = [20]*8
