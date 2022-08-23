@@ -152,7 +152,9 @@ extern "C" {
 #define S826_CC __stdcall
 typedef unsigned int uint;
 typedef unsigned short uint16;
-typedef UINT64 uint64;
+//typedef UINT64 uint64;
+// compiling issue, redefined this line to be an unsigned 64 bit value (long is 32, long long is 64):
+typedef unsigned long long uint64;
 #else
 #define S826_API
 #define S826_CC

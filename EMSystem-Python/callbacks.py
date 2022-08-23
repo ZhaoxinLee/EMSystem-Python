@@ -2,6 +2,7 @@
 from PyQt5.QtCore import QFile, QRegExp, QTimer, Qt, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMenu, QMessageBox
 from s826 import S826
+from monitor import Monitor
 import time
 
 #=========================================================
@@ -11,7 +12,7 @@ qtCreatorFile = "mainwindow.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 
-monitor = S826()
+monitor = Monitor(S826())
 
 #=========================================================
 # a class that handles the signal and callbacks of the GUI
@@ -21,6 +22,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         QMainWindow.__init__(self,None,Qt.WindowStaysOnTopHint)
         Ui_MainWindow.__init__(self)
         self.updateRate = 15 # (ms) update rate of the GUI, vision, plot
+        self.measuredData = [0]*16
         self.setupUi(self)
         # self.setupTimer()
         # try:
@@ -32,27 +34,28 @@ class GUI(QMainWindow,Ui_MainWindow):
         # self.setupRealTimePlot() # comment ou this line if you don't want a preview window
         self.connectSignals()
         self.linkWidgets()
+        self.setupMonitor()
 
     #=====================================================
     # [override] terminate the subThread and clear currents when closing the window
     #=====================================================
     def closeEvent(self,event):
-        self.thrd.stop()
-        self.timer.stop()
-        vision.closeCamera()
-        try:
-            vision2
-        except NameError:
-            pass
-        else:
-            vision2.closeCamera()
-        try:
-            joystick
-        except NameError:
-            pass
-        else:
-            joystick.quit()
-        self.clearField()
+        #self.thrd.stop()
+        # self.timer.stop()
+        # vision.closeCamera()
+        # try:
+        #     vision2
+        # except NameError:
+        #     pass
+        # else:
+        #     vision2.closeCamera()
+        # try:
+        #     joystick
+        # except NameError:
+        #     pass
+        # else:
+        #     joystick.quit()
+        # self.clearField()
         event.accept()
 
     #=====================================================
@@ -84,6 +87,20 @@ class GUI(QMainWindow,Ui_MainWindow):
         else:
             joystick.update()
 
+    def setupMonitor(self):
+        self.measuredData = monitor.setMonitor()
+        # check that the temperature in any core is not above the max value
+#!!!!!!!!!!!!!!!!! NEVER change or comment below code!!!!!!!!!!!!!!!!!!!!!!!
+#!!!!!!!!!!! This is the only place to moniter overheating of the system!!!!!!!!!!!
+        if any(self.measuredData[i+8] > 90 for i in range(8)):
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setText("<p>Overheating! Currents cleared...</p>")
+            msgBox.setWindowTitle("Warning!")
+            msgBox.setStandardButtons(QMessageBox.Ok)
+            #msgBox.buttonClicked.connect(msgButtonClick)
+
+            msgBox.exec()
 
 
     #=====================================================
@@ -100,17 +117,24 @@ class GUI(QMainWindow,Ui_MainWindow):
         # self.dsb_zGradient.valueChanged.connect(self.setFieldXYZGradient)
 
         # Subthread Tab
-        self.cbb_subThread.currentTextChanged.connect(self.on_cbb_subThread)
-        self.cbb_subThread.currentTextChanged.connect(self.on_chb_changeSubthread)
-        self.cbb_subThread.currentTextChanged.connect(self.on_chb_switchSubthread)
-        self.chb_startStopSubthread.toggled.connect(self.on_chb_startStopSubthread)
-        self.dsb_subThreadParam0.valueChanged.connect(self.thrd.setParam0)
-        self.dsb_subThreadParam1.valueChanged.connect(self.thrd.setParam1)
-        self.dsb_subThreadParam2.valueChanged.connect(self.thrd.setParam2)
-        self.dsb_subThreadParam3.valueChanged.connect(self.thrd.setParam3)
-        self.dsb_subThreadParam4.valueChanged.connect(self.thrd.setParam4)
+        # self.cbb_subThread.currentTextChanged.connect(self.on_cbb_subThread)
+        # self.cbb_subThread.currentTextChanged.connect(self.on_chb_changeSubthread)
+        # self.cbb_subThread.currentTextChanged.connect(self.on_chb_switchSubthread)
+        # self.chb_startStopSubthread.toggled.connect(self.on_chb_startStopSubthread)
+        # self.dsb_subThreadParam0.valueChanged.connect(self.thrd.setParam0)
+        # self.dsb_subThreadParam1.valueChanged.connect(self.thrd.setParam1)
+        # self.dsb_subThreadParam2.valueChanged.connect(self.thrd.setParam2)
+        # self.dsb_subThreadParam3.valueChanged.connect(self.thrd.setParam3)
+        # self.dsb_subThreadParam4.valueChanged.connect(self.thrd.setParam4)
 
-        #self.lbl_temp_0.setText()
+        self.lbl_temp_0.setText(str(self.measuredData[8]))
+        self.lbl_temp_1.setText(str(self.measuredData[9]))
+        self.lbl_temp_2.setText(str(self.measuredData[10]))
+        self.lbl_temp_3.setText(str(self.measuredData[11]))
+        self.lbl_temp_4.setText(str(self.measuredData[12]))
+        self.lbl_temp_5.setText(str(self.measuredData[13]))
+        self.lbl_temp_6.setText(str(self.measuredData[14]))
+        self.lbl_temp_7.setText(str(self.measuredData[15]))
 
 
     #=====================================================
