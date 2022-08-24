@@ -46,9 +46,9 @@ class FieldManager(object):
         self.z = mT
 
     def setXYZ(self,x_mT,y_mT,z_mT):
-        self.setX(x_mT)
-        self.setY(y_mT)
-        self.setZ(z_mT)
+        self.x = x_mT
+        self.y = y_mT
+        self.z = z_mT
 
 
     # def setXGradient(self,uniformX,gradientX):

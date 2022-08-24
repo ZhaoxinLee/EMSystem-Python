@@ -32,15 +32,16 @@ class S826(object):
         self.boardConnected = False
         boardflags  = self.s826_init() # Here 0 means no board and 1 mean board 0 found, for only 1 board connected the function should return 2^(ID#)
         if boardflags != 2:
-            print('Cannot detect s826 board. Error code: {}'.format(errcode))
+            print('Cannot detect s826 board. Error code: {}'.format(boardflags))
             self.s826_close()
         else:
             self.boardConnected = True
             print("S826_SystemOpen() returned the value: {}".format(boardflags))
             print("The board number is: {}".format(int(log2(boardflags))))
-        if self.boardConnected:
+        if not self.boardConnected:
             self.X826(s826dll.S826_CounterStateWrite(BOARD, COUNTER_CHAN, 0))     # halt channel if it's running
             self.X826(s826dll.S826_CounterModeWrite(BOARD, COUNTER_CHAN, TMR_MODE))     # configure counter as periodic timer
+            #print(bin(TMR_MODE))
             self.s826_initDac()
             self.s826_initAdc()
 
@@ -96,15 +97,17 @@ class S826(object):
         tstamp = None
         slotlist = bytes(0xFFFF)
         self.X826(s826dll.S826_AdcRead(BOARD, adcbuf, tstamp, slotlist, TMAX))
-        # if errcode == s826dll.S826_ERR_MISSEDTRIG:
-        #     errcode = s826dll.S826_ERR_OK
         # Read adc value for each channel
-        # print(adcbuf)
         for i in range(16):
             aiV[i] = adcbuf[i] & 0xFFFF
-        print(aiV)
+        print("analog input voltage:", aiV)
         return aiV
 
+# ERROR HANDLING
+# These examples employ very simple error handling: if an error is detected, the example functions will immediately return an error code.
+# This behavior may not be suitable for some real-world applications but it makes the code easier to read and understand. In a real
+# application, it's likely that additional actions would need to be performed. The examples use the following X826 macro to handle API
+# function errors; it calls an API function and stores the returned value in errcode, then returns immediately if an error was detected.
     def X826(self,func):
         errcode = func
         if errcode != 0:

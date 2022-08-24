@@ -98,8 +98,6 @@ class GUI(QMainWindow,Ui_MainWindow):
             msgBox.setText("<p>Overheating! Currents cleared...</p>")
             msgBox.setWindowTitle("Warning!")
             msgBox.setStandardButtons(QMessageBox.Ok)
-            #msgBox.buttonClicked.connect(msgButtonClick)
-
             msgBox.exec()
 
 
@@ -204,9 +202,7 @@ class GUI(QMainWindow,Ui_MainWindow):
     #=====================================================
     # General control tab
     def setFieldXYZ(self):
-        field.setX(self.dsb_x.value())
-        field.setY(self.dsb_y.value())
-        field.setZ(self.dsb_z.value())
+        field.setXYZ(self.dsb_x.value(),self.dsb_y.value(),self.dsb_z.value())
         field.setMagnitude(round(sqrt(pow(self.dsb_x.value(),2)+pow(self.dsb_y.value(),2)+pow(self.dsb_z.value(),2)),2))
 
     def clearField(self):
