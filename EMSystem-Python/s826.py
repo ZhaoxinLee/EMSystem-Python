@@ -2,10 +2,22 @@ from ctypes import *
 from numpy import *
 import array
 s826dll = cdll.LoadLibrary("./s826.dll") # for Windows system
-# s826dll = cdll.LoadLibrary("./lib826_64.so") # for Windows system
+# s826dll = cdll.LoadLibrary("./lib826_64.so") # for Linux system
 BOARD = 1 # The board identifier is assumed to be always 0 (All switches OFF).
 TSETTLE = 250 # can be set as low as 0. Lower is faster, but higher is less noise.
 TMAX = 500 # ADC. Max time allowed to read analog signals
+
+# As we cannot export macros from c++ dll file, here we manually define the macros we are going to use only
+# For other macros that will be used for further s826 functions, please refer to s826api.h to see the definition
+COUNTER_CHAN = 5 # Counter channel number
+# TMR_MODE  (S826_CM_K_1MHZ | S826_CM_UD_REVERSE | S826_CM_PX_ZERO | S826_CM_PX_START | S826_CM_OM_NOTZERO)
+S826_CM_K_1MHZ = 2 << 4
+S826_CM_UD_REVERSE = 1 << 22
+S826_CM_PX_ZERO = 1 << 13
+S826_CM_PX_START = 1 << 24
+S826_CM_OM_NOTZERO = 3 << 18
+TMR_MODE = S826_CM_K_1MHZ | S826_CM_UD_REVERSE | S826_CM_PX_ZERO | S826_CM_PX_START | S826_CM_OM_NOTZERO
+
 RANGE_PARAM = [[0,5],[0,10],[-5,10],[-10,20]] # DAC rangeCode = 0, 1, 2, 3     [lowerV,rangeV]
 RANGE_PARAM_2 = [[-10,20],[-5,10],[-2,4],[-1,2]] # ADC rangeCode = 0, 1, 2, 3     [lowerV,rangeV]
 
@@ -27,8 +39,8 @@ class S826(object):
             print("S826_SystemOpen() returned the value: {}".format(boardflags))
             print("The board number is: {}".format(int(log2(boardflags))))
         if self.boardConnected:
-            self.X826(s826dll.S826_CounterStateWrite(BOARD, 5, 0))     # halt channel if it's running
-            #self.X826(s826dll.S826_CounterModeWrite(BOARD, 5, ))     # configure counter as periodic timer
+            self.X826(s826dll.S826_CounterStateWrite(BOARD, COUNTER_CHAN, 0))     # halt channel if it's running
+            self.X826(s826dll.S826_CounterModeWrite(BOARD, COUNTER_CHAN, TMR_MODE))     # configure counter as periodic timer
             self.s826_initDac()
             self.s826_initAdc()
 
