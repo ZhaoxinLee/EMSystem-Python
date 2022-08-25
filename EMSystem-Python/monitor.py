@@ -25,7 +25,7 @@ class Monitor(object):
         aiVoltage = self.adc.s826_aiPin(self.aiVoltage)
         self.aiVoltage = aiVoltage
         currentSenseAdj = [6.7501, 6.6705, 6.4118, 3.8831, 6.7703, 6.7703, 6.7107, 6.8500]
-        tempSenseAdj = [20]*8
+        tempSenseAdj = [1]*8
         for i in range(8):
             self.measuredData[i] = self.aiVoltage[i]*currentSenseAdj[i] # measured current
             self.measuredData[i+8] = self.aiVoltage[i+8]*tempSenseAdj[i] # measured temp

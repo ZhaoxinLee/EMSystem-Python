@@ -1,6 +1,5 @@
 from ctypes import *
-from numpy import *
-import array
+import numpy as np
 s826dll = cdll.LoadLibrary("./s826.dll") # for Windows system
 # s826dll = cdll.LoadLibrary("./lib826_64.so") # for Linux system
 BOARD = 1 # The board identifier is assumed to be always 0 (All switches OFF).
@@ -17,6 +16,7 @@ S826_CM_PX_ZERO = 1 << 13
 S826_CM_PX_START = 1 << 24
 S826_CM_OM_NOTZERO = 3 << 18
 TMR_MODE = S826_CM_K_1MHZ | S826_CM_UD_REVERSE | S826_CM_PX_ZERO | S826_CM_PX_START | S826_CM_OM_NOTZERO
+CLEAR_BITS = 0x0000000
 
 RANGE_PARAM = [[0,5],[0,10],[-5,10],[-10,20]] # DAC rangeCode = 0, 1, 2, 3     [lowerV,rangeV]
 RANGE_PARAM_2 = [[-10,20],[-5,10],[-2,4],[-1,2]] # ADC rangeCode = 0, 1, 2, 3     [lowerV,rangeV]
@@ -37,8 +37,8 @@ class S826(object):
         else:
             self.boardConnected = True
             print("S826_SystemOpen() returned the value: {}".format(boardflags))
-            print("The board number is: {}".format(int(log2(boardflags))))
-        if not self.boardConnected:
+            print("The board number is: {}".format(int(np.log2(boardflags))))
+        if self.boardConnected:
             self.X826(s826dll.S826_CounterStateWrite(BOARD, COUNTER_CHAN, 0))     # halt channel if it's running
             self.X826(s826dll.S826_CounterModeWrite(BOARD, COUNTER_CHAN, TMR_MODE))     # configure counter as periodic timer
             #print(bin(TMR_MODE))
@@ -50,6 +50,9 @@ class S826(object):
         return errCode
 
     def s826_close(self):
+        if self.boardConnected:
+            self.X826(s826dll.S826_CounterModeWrite(BOARD, COUNTER_CHAN, CLEAR_BITS))
+            self.X826(s826dll.S826_AdcEnableWrite(BOARD, 0))
         s826dll.S826_SystemClose()
 
     def s826_initDac(self):
@@ -58,10 +61,13 @@ class S826(object):
 
     def s826_initAdc(self):
         for i in range(16):
-            self.s826_setAdcRange(i,0) # default range selection = 0
+            #self.s826_setAdcRange(i,0) # default range selection = 0
+            self.X826(s826dll.S826_AdcSlotConfigWrite(BOARD,i,i,TSETTLE,0))
         self.X826(s826dll.S826_AdcSlotlistWrite(BOARD, 0xFFFF, 0)) # enable all ADC timeslots
         self.X826(s826dll.S826_AdcTrigModeWrite(BOARD, 0)) # disable ADC hardware triggering, use continuous mode
         self.X826(s826dll.S826_AdcEnableWrite(BOARD, 1)) # enable ADC conversions
+
+        # self.s826_analogRead(1,1)
 
     # ======================================================================
     # rangeCode: 0: 0 +5V; 1: 0 +10V; 2: -5 +5V; 3:-10 +10V.
@@ -91,16 +97,29 @@ class S826(object):
         setpoint = int((outputV-lowerV)/rangeV*0xffff)
         self.X826(s826dll.S826_DacDataWrite(BOARD,chan,setpoint,0))
 
+    def s826_analogRead(self,chan,aiV):
+        adcbuf = np.zeros(16)
+        tstamp = None
+        slotlist = bytes(1<<chan)
+        self.X826(s826dll.S826_AdcRead(BOARD, adcbuf, tstamp, slotlist, TMAX))
+        aiV = adcbuf[chan] & 0xFFFF
 
     def s826_aiPin(self,aiV):
-        adcbuf = bytes(16)
         tstamp = None
-        slotlist = bytes(0xFFFF)
-        self.X826(s826dll.S826_AdcRead(BOARD, adcbuf, tstamp, slotlist, TMAX))
+        slotlist = bytes(c_uint(0xFFFF))
+        adcbuf = pointer(c_int())
+        # for i in range(16):
+        #     print('buf',adcbuf[i])
+        # print('slot',slotlist)
+        print(s826dll.S826_AdcRead(BOARD, adcbuf, tstamp, slotlist, TMAX))
         # Read adc value for each channel
+        resolution = 20.0 / 65536.0
         for i in range(16):
-            aiV[i] = adcbuf[i] & 0xFFFF
-        print("analog input voltage:", aiV)
+            singleReading = adcbuf[i] & 0xFFFF
+            if singleReading & 0x8000:
+                aiV[i] = ( ( ~(singleReading-1) ) & 0xFFFF ) * resolution # subtract 1 due to range of integers being −32,768 to 32,767
+                aiV[i] = -1.0 * aiV[i]
+            print("analog input voltage:",adcbuf[i],singleReading,aiV[i])
         return aiV
 
 # ERROR HANDLING

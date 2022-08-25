@@ -11,8 +11,8 @@ import time
 qtCreatorFile = "mainwindow.ui"
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
-
-monitor = Monitor(S826())
+s826 = S826()
+monitor = Monitor(s826)
 
 #=========================================================
 # a class that handles the signal and callbacks of the GUI
@@ -32,9 +32,9 @@ class GUI(QMainWindow,Ui_MainWindow):
         # else:
         #     self.setupSubThread(field,vision,joystick)
         # self.setupRealTimePlot() # comment ou this line if you don't want a preview window
+        self.setupMonitor()
         self.connectSignals()
         self.linkWidgets()
-        self.setupMonitor()
 
     #=====================================================
     # [override] terminate the subThread and clear currents when closing the window
@@ -56,7 +56,9 @@ class GUI(QMainWindow,Ui_MainWindow):
         # else:
         #     joystick.quit()
         # self.clearField()
+        s826.s826_close()
         event.accept()
+
 
     #=====================================================
     # QTimer handles updates of the GUI, run at 60Hz
@@ -67,39 +69,40 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.timer.start(self.updateRate) # msec
 
     def update(self):
-        vision.updateFrame()
-        try:
-            vision2
-        except NameError:
-            pass
-        else:
-            vision2.updateFrame()
-        try:
-            self.realTimePlot
-        except AttributeError:
-            pass
-        else:
-            self.updatePlot()
-        try:
-            joystick
-        except NameError:
-            pass
-        else:
-            joystick.update()
+        # vision.updateFrame()
+        # try:
+        #     vision2
+        # except NameError:
+        #     pass
+        # else:
+        #     vision2.updateFrame()
+        # try:
+        #     self.realTimePlot
+        # except AttributeError:
+        #     pass
+        # else:
+        #     self.updatePlot()
+        # try:
+        #     joystick
+        # except NameError:
+        #     pass
+        # else:
+        #     joystick.update()
+        self.measuredData = monitor.setMonitor()
 
     def setupMonitor(self):
         self.measuredData = monitor.setMonitor()
+        print(self.measuredData)
         # check that the temperature in any core is not above the max value
 #!!!!!!!!!!!!!!!!! NEVER change or comment below code!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!! This is the only place to moniter overheating of the system!!!!!!!!!!!
-        if any(self.measuredData[i+8] > 90 for i in range(8)):
-            msgBox = QMessageBox()
-            msgBox.setIcon(QMessageBox.Information)
-            msgBox.setText("<p>Overheating! Currents cleared...</p>")
-            msgBox.setWindowTitle("Warning!")
-            msgBox.setStandardButtons(QMessageBox.Ok)
-            msgBox.exec()
-
+        # if any(self.measuredData[i+8] > 90 for i in range(8)):
+        #     msgBox = QMessageBox()
+        #     msgBox.setIcon(QMessageBox.Information)
+        #     msgBox.setText("<p>Overheating! Currents cleared...</p>")
+        #     msgBox.setWindowTitle("Warning!")
+        #     msgBox.setStandardButtons(QMessageBox.Ok)
+        #     msgBox.exec()
 
     #=====================================================
     # Connect buttons etc. of the GUI to callback functions
