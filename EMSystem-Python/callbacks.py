@@ -23,8 +23,10 @@ class GUI(QMainWindow,Ui_MainWindow):
         Ui_MainWindow.__init__(self)
         self.updateRate = 15 # (ms) update rate of the GUI, vision, plot
         self.measuredData = [0]*16
+        self.aiVoltage = [0]*16
         self.setupUi(self)
-        # self.setupTimer()
+        # self.setupMonitor()
+        self.setupTimer()
         # try:
         #     joystick
         # except NameError:
@@ -32,8 +34,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         # else:
         #     self.setupSubThread(field,vision,joystick)
         # self.setupRealTimePlot() # comment ou this line if you don't want a preview window
-        self.setupMonitor()
-        self.connectSignals()
+        # self.connectSignals()
         self.linkWidgets()
 
     #=====================================================
@@ -64,11 +65,19 @@ class GUI(QMainWindow,Ui_MainWindow):
     # QTimer handles updates of the GUI, run at 60Hz
     #=====================================================
     def setupTimer(self):
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update)
-        self.timer.start(self.updateRate) # msec
+        # self.timer = QTimer()
+        # self.timer.timeout.connect(self.update)
+        # self.timer.start(self.updateRate) # msec
 
-    def update(self):
+        self.monitorTimer = QTimer()
+        self.monitorTimer.timeout.connect(self.updateMonitor)
+        self.monitorTimer.start(100)
+
+        self.captionTimer = QTimer()
+        self.captionTimer.timeout.connect(self.updateCaption)
+        self.captionTimer.start(100)
+
+    # def update(self):
         # vision.updateFrame()
         # try:
         #     vision2
@@ -88,11 +97,11 @@ class GUI(QMainWindow,Ui_MainWindow):
         #     pass
         # else:
         #     joystick.update()
-        self.measuredData = monitor.setMonitor()
 
-    def setupMonitor(self):
+
+    def updateMonitor(self):
         self.measuredData = monitor.setMonitor()
-        print(self.measuredData)
+        # print(self.measuredData)
         # check that the temperature in any core is not above the max value
 #!!!!!!!!!!!!!!!!! NEVER change or comment below code!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!! This is the only place to moniter overheating of the system!!!!!!!!!!!
@@ -107,7 +116,7 @@ class GUI(QMainWindow,Ui_MainWindow):
     #=====================================================
     # Connect buttons etc. of the GUI to callback functions
     #=====================================================
-    def connectSignals(self):
+    # def connectSignals(self):
         # General Control Tab
         # self.dsb_x.valueChanged.connect(self.setFieldXYZ)
         # self.dsb_y.valueChanged.connect(self.setFieldXYZ)
@@ -127,15 +136,6 @@ class GUI(QMainWindow,Ui_MainWindow):
         # self.dsb_subThreadParam2.valueChanged.connect(self.thrd.setParam2)
         # self.dsb_subThreadParam3.valueChanged.connect(self.thrd.setParam3)
         # self.dsb_subThreadParam4.valueChanged.connect(self.thrd.setParam4)
-
-        self.lbl_temp_0.setText(str(self.measuredData[8]))
-        self.lbl_temp_1.setText(str(self.measuredData[9]))
-        self.lbl_temp_2.setText(str(self.measuredData[10]))
-        self.lbl_temp_3.setText(str(self.measuredData[11]))
-        self.lbl_temp_4.setText(str(self.measuredData[12]))
-        self.lbl_temp_5.setText(str(self.measuredData[13]))
-        self.lbl_temp_6.setText(str(self.measuredData[14]))
-        self.lbl_temp_7.setText(str(self.measuredData[15]))
 
 
     #=====================================================
@@ -157,6 +157,15 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.hsld_yGradient.valueChanged.connect(lambda value: self.dsb_yGradient.setValue(float(value/100)))
         self.hsld_zGradient.valueChanged.connect(lambda value: self.dsb_zGradient.setValue(float(value/100)))
 
+    def updateCaption(self):
+        self.lbl_temp_0.setText(str(self.measuredData[8]))
+        self.lbl_temp_1.setText(str(self.measuredData[9]))
+        self.lbl_temp_2.setText(str(self.measuredData[10]))
+        self.lbl_temp_3.setText(str(self.measuredData[11]))
+        self.lbl_temp_4.setText(str(self.measuredData[12]))
+        self.lbl_temp_5.setText(str(self.measuredData[13]))
+        self.lbl_temp_6.setText(str(self.measuredData[14]))
+        self.lbl_temp_7.setText(str(self.measuredData[15]))
 
     #=====================================================
     # Thread Example

@@ -30,6 +30,7 @@ class S826(object):
         self.lowerV_2 = [-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10]  # default range selection = 0
         self.rangeV_2 = [20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20]  # default range selection = 0
         self.boardConnected = False
+        self.aiV = [0]*16
         boardflags  = self.s826_init() # Here 0 means no board and 1 mean board 0 found, for only 1 board connected the function should return 2^(ID#)
         if boardflags != 2:
             print('Cannot detect s826 board. Error code: {}'.format(boardflags))
@@ -61,13 +62,15 @@ class S826(object):
 
     def s826_initAdc(self):
         for i in range(16):
-            #self.s826_setAdcRange(i,0) # default range selection = 0
+            # self.s826_setAdcRange(i,0) # default range selection = 0
             self.X826(s826dll.S826_AdcSlotConfigWrite(BOARD,i,i,TSETTLE,0))
         self.X826(s826dll.S826_AdcSlotlistWrite(BOARD, 0xFFFF, 0)) # enable all ADC timeslots
+        # slotlist = pointer(c_uint())
+        # self.X826(s826dll.S826_AdcSlotlistRead(BOARD, slotlist))
+        # for i in range(17):
+        #     print(bin(slotlist[i]))
         self.X826(s826dll.S826_AdcTrigModeWrite(BOARD, 0)) # disable ADC hardware triggering, use continuous mode
         self.X826(s826dll.S826_AdcEnableWrite(BOARD, 1)) # enable ADC conversions
-
-        # self.s826_analogRead(1,1)
 
     # ======================================================================
     # rangeCode: 0: 0 +5V; 1: 0 +10V; 2: -5 +5V; 3:-10 +10V.
@@ -97,29 +100,42 @@ class S826(object):
         setpoint = int((outputV-lowerV)/rangeV*0xffff)
         self.X826(s826dll.S826_DacDataWrite(BOARD,chan,setpoint,0))
 
-    def s826_analogRead(self,chan,aiV):
-        adcbuf = np.zeros(16)
+# ======================================================================
+# Set 16 AI channel.
+# chan : ADC channel # in the range 0 to 15.
+# chan 8-15: thermometer reading.
+# ======================================================================
+    def s826_aiReadAll(self,aiV):
         tstamp = None
-        slotlist = bytes(1<<chan)
-        self.X826(s826dll.S826_AdcRead(BOARD, adcbuf, tstamp, slotlist, TMAX))
-        aiV = adcbuf[chan] & 0xFFFF
-
-    def s826_aiPin(self,aiV):
-        tstamp = None
-        slotlist = bytes(c_uint(0xFFFF))
+        # slotlist = bytes(c_uint(0xFFFF))
+        slotlist = pointer(c_uint(0xFF00))
         adcbuf = pointer(c_int())
-        # for i in range(16):
-        #     print('buf',adcbuf[i])
-        # print('slot',slotlist)
-        print(s826dll.S826_AdcRead(BOARD, adcbuf, tstamp, slotlist, TMAX))
+        # for i in range(1):
+
+        #     adcbuf[i] = c_int(1)
+            # print('buf',adcbuf[i])
+            # slotlist[i] = c_uint(1)
+        # print('slot',bin(slotlist[0]))
+        errcode = s826dll.S826_AdcRead(BOARD, adcbuf, tstamp, slotlist, TMAX)
+        # if errcode == 0:
+        #     print("Analog input read successfully...")
+        # else:
+        #     print("Error in reading analog input: {}".format(errcode))
+
         # Read adc value for each channel
-        resolution = 20.0 / 65536.0
+        resolution = 20.0 / 65536.0 # default range -10V to 10V
         for i in range(16):
             singleReading = adcbuf[i] & 0xFFFF
             if singleReading & 0x8000:
                 aiV[i] = ( ( ~(singleReading-1) ) & 0xFFFF ) * resolution # subtract 1 due to range of integers being −32,768 to 32,767
                 aiV[i] = -1.0 * aiV[i]
-            print("analog input voltage:",adcbuf[i],singleReading,aiV[i])
+            else:
+                aiV[i] = singleReading * resolution
+        currentSenseAdj = [6.7501, 6.6705, 6.4118, 3.8831, 6.7703, 6.7703, 6.7107, 6.8500]
+        # for i in range(8):
+        #     print("Analog input voltage 0-7:",bin(adcbuf[i]),aiV[i]*currentSenseAdj[i])
+        # for i in range(8,16):
+        #     print("Analog input voltage 8-15:",bin(adcbuf[i]),20*aiV[i])
         return aiV
 
 # ERROR HANDLING
