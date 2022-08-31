@@ -67,8 +67,7 @@ class S826(object):
         self.X826(s826dll.S826_AdcSlotlistWrite(BOARD, 0xFFFF, 0)) # enable all ADC timeslots
         # slotlist = pointer(c_uint())
         # self.X826(s826dll.S826_AdcSlotlistRead(BOARD, slotlist))
-        # for i in range(17):
-        #     print(bin(slotlist[i]))
+        # print(bin(slotlist[0]))
         self.X826(s826dll.S826_AdcTrigModeWrite(BOARD, 0)) # disable ADC hardware triggering, use continuous mode
         self.X826(s826dll.S826_AdcEnableWrite(BOARD, 1)) # enable ADC conversions
 
@@ -108,7 +107,7 @@ class S826(object):
     def s826_aiReadAll(self,aiV):
         tstamp = None
         # slotlist = bytes(c_uint(0xFFFF))
-        slotlist = pointer(c_uint(0xFF00))
+        slotlist = pointer(c_uint(0xFF0F))
         adcbuf = pointer(c_int())
         # for i in range(1):
 
@@ -131,7 +130,7 @@ class S826(object):
                 aiV[i] = -1.0 * aiV[i]
             else:
                 aiV[i] = singleReading * resolution
-        currentSenseAdj = [6.7501, 6.6705, 6.4118, 3.8831, 6.7703, 6.7703, 6.7107, 6.8500]
+        # currentSenseAdj = [6.7501, 6.6705, 6.4118, 3.8831, 6.7703, 6.7703, 6.7107, 6.8500]
         # for i in range(8):
         #     print("Analog input voltage 0-7:",bin(adcbuf[i]),aiV[i]*currentSenseAdj[i])
         # for i in range(8,16):

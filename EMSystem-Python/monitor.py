@@ -12,6 +12,6 @@ class Monitor(object):
         currentSenseAdj = [6.7501, 6.6705, 6.4118, 3.8831, 6.7703, 6.7703, 6.7107, 6.8500]
         tempSenseAdj = [20]*8
         for i in range(8):
-            self.measuredData[i] = self.aiVoltage[i]*currentSenseAdj[i] # measured current
+            self.measuredData[i] = round(self.aiVoltage[i]*currentSenseAdj[i],2) # measured current
             self.measuredData[i+8] = round(self.aiVoltage[i+8]*tempSenseAdj[i],2) # measured temp
         return self.measuredData

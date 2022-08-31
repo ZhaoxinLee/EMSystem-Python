@@ -101,17 +101,19 @@ class GUI(QMainWindow,Ui_MainWindow):
 
     def updateMonitor(self):
         self.measuredData = monitor.setMonitor()
-        # print(self.measuredData)
+        print(self.measuredData)
         # check that the temperature in any core is not above the max value
 #!!!!!!!!!!!!!!!!! NEVER change or comment below code!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!! This is the only place to moniter overheating of the system!!!!!!!!!!!
-        # if any(self.measuredData[i+8] > 90 for i in range(8)):
-        #     msgBox = QMessageBox()
-        #     msgBox.setIcon(QMessageBox.Information)
-        #     msgBox.setText("<p>Overheating! Currents cleared...</p>")
-        #     msgBox.setWindowTitle("Warning!")
-        #     msgBox.setStandardButtons(QMessageBox.Ok)
-        #     msgBox.exec()
+        if any(self.measuredData[i+8] > 90 for i in range(8)):
+            msgBox = QMessageBox()
+            msgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
+            msgBox.setIcon(QMessageBox.Information)
+            msgBox.setText("<p>Overheating! Currents cleared...</p>")
+            msgBox.setWindowTitle("Warning!")
+            msgBox.setStandardButtons(QMessageBox.Ok)
+            msgBox.exec()
+            self.monitorTimer.stop()
 
     #=====================================================
     # Connect buttons etc. of the GUI to callback functions
