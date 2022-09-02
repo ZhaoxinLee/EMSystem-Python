@@ -107,7 +107,7 @@ class S826(object):
     def s826_aiReadAll(self,aiV):
         tstamp = None
         # slotlist = bytes(c_uint(0xFFFF))
-        slotlist = pointer(c_uint(0xFF0F))
+        slotlist = pointer(c_uint(0xFFFF))
         adcbuf = pointer(c_int())
         # for i in range(1):
 

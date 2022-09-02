@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMenu, QMess
 from s826 import S826
 from monitor import Monitor
 import time
+import numpy as np
 
 #=========================================================
 # UI Config
@@ -24,6 +25,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.updateRate = 15 # (ms) update rate of the GUI, vision, plot
         self.measuredData = [0]*16
         self.aiVoltage = [0]*16
+        self.B_Global_Desired = [0]*3
         self.setupUi(self)
         # self.setupMonitor()
         self.setupTimer()
@@ -34,7 +36,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         # else:
         #     self.setupSubThread(field,vision,joystick)
         # self.setupRealTimePlot() # comment ou this line if you don't want a preview window
-        # self.connectSignals()
+        self.connectSignals()
         self.linkWidgets()
 
     #=====================================================
@@ -101,11 +103,12 @@ class GUI(QMainWindow,Ui_MainWindow):
 
     def updateMonitor(self):
         self.measuredData = monitor.setMonitor()
-        print(self.measuredData)
+        # print(self.measuredData)
         # check that the temperature in any core is not above the max value
 #!!!!!!!!!!!!!!!!! NEVER change or comment below code!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!! This is the only place to moniter overheating of the system!!!!!!!!!!!
         if any(self.measuredData[i+8] > 90 for i in range(8)):
+            field.setOverheatFlag(True)
             msgBox = QMessageBox()
             msgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
             msgBox.setIcon(QMessageBox.Information)
@@ -118,15 +121,17 @@ class GUI(QMainWindow,Ui_MainWindow):
     #=====================================================
     # Connect buttons etc. of the GUI to callback functions
     #=====================================================
-    # def connectSignals(self):
+    def connectSignals(self):
         # General Control Tab
-        # self.dsb_x.valueChanged.connect(self.setFieldXYZ)
-        # self.dsb_y.valueChanged.connect(self.setFieldXYZ)
-        # self.dsb_z.valueChanged.connect(self.setFieldXYZ)
-        # self.btn_clearCurrent.clicked.connect(self.clearField)
-        # self.dsb_xGradient.valueChanged.connect(self.setFieldXYZGradient)
-        # self.dsb_yGradient.valueChanged.connect(self.setFieldXYZGradient)
-        # self.dsb_zGradient.valueChanged.connect(self.setFieldXYZGradient)
+        self.dsb_x.valueChanged.connect(self.setFieldXYZ)
+        self.dsb_y.valueChanged.connect(self.setFieldXYZ)
+        self.dsb_z.valueChanged.connect(self.setFieldXYZ)
+        self.btn_clearCurrent.clicked.connect(self.clearField)
+        self.dsb_xxGradient.valueChanged.connect(self.setFieldXYZGradient)
+        self.dsb_xyGradient.valueChanged.connect(self.setFieldXYZGradient)
+        self.dsb_xzGradient.valueChanged.connect(self.setFieldXYZGradient)
+        self.dsb_yyGradient.valueChanged.connect(self.setFieldXYZGradient)
+        self.dsb_yzGradient.valueChanged.connect(self.setFieldXYZGradient)
 
         # Subthread Tab
         # self.cbb_subThread.currentTextChanged.connect(self.on_cbb_subThread)
@@ -152,12 +157,16 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.hsld_y.valueChanged.connect(lambda value: self.dsb_y.setValue(float(value/100)))
         self.hsld_z.valueChanged.connect(lambda value: self.dsb_z.setValue(float(value/100)))
 
-        self.dsb_xGradient.valueChanged.connect(lambda value: self.hsld_xGradient.setValue(int(value*100)))
-        self.dsb_yGradient.valueChanged.connect(lambda value: self.hsld_yGradient.setValue(int(value*100)))
-        self.dsb_zGradient.valueChanged.connect(lambda value: self.hsld_zGradient.setValue(int(value*100)))
-        self.hsld_xGradient.valueChanged.connect(lambda value: self.dsb_xGradient.setValue(float(value/100)))
-        self.hsld_yGradient.valueChanged.connect(lambda value: self.dsb_yGradient.setValue(float(value/100)))
-        self.hsld_zGradient.valueChanged.connect(lambda value: self.dsb_zGradient.setValue(float(value/100)))
+        self.dsb_xxGradient.valueChanged.connect(lambda value: self.hsld_xxGradient.setValue(int(value*100)))
+        self.dsb_xyGradient.valueChanged.connect(lambda value: self.hsld_xyGradient.setValue(int(value*100)))
+        self.dsb_xzGradient.valueChanged.connect(lambda value: self.hsld_xzGradient.setValue(int(value*100)))
+        self.dsb_yyGradient.valueChanged.connect(lambda value: self.hsld_yyGradient.setValue(int(value*100)))
+        self.dsb_yzGradient.valueChanged.connect(lambda value: self.hsld_yzGradient.setValue(int(value*100)))
+        self.hsld_xxGradient.valueChanged.connect(lambda value: self.dsb_xxGradient.setValue(float(value/100)))
+        self.hsld_xyGradient.valueChanged.connect(lambda value: self.dsb_xyGradient.setValue(float(value/100)))
+        self.hsld_xzGradient.valueChanged.connect(lambda value: self.dsb_xzGradient.setValue(float(value/100)))
+        self.hsld_yyGradient.valueChanged.connect(lambda value: self.dsb_yyGradient.setValue(float(value/100)))
+        self.hsld_yzGradient.valueChanged.connect(lambda value: self.dsb_yzGradient.setValue(float(value/100)))
 
     def updateCaption(self):
         self.lbl_temp_0.setText(str(self.measuredData[8]))
@@ -216,8 +225,10 @@ class GUI(QMainWindow,Ui_MainWindow):
     #=====================================================
     # General control tab
     def setFieldXYZ(self):
-        field.setXYZ(self.dsb_x.value(),self.dsb_y.value(),self.dsb_z.value())
-        field.setMagnitude(round(sqrt(pow(self.dsb_x.value(),2)+pow(self.dsb_y.value(),2)+pow(self.dsb_z.value(),2)),2))
+        self.B_Global_Desired = np.array([self.dsb_x.value(),self.dsb_y.value(),self.dsb_z.value()])
+        # print(self.B_Global_Desired)
+        field.setXYZ(self.B_Global_Desired)
+        # field.setMagnitude(round(sqrt(pow(self.dsb_x.value(),2)+pow(self.dsb_y.value(),2)+pow(self.dsb_z.value(),2)),2))
 
     def clearField(self):
         self.dsb_x.setValue(0)
@@ -226,14 +237,15 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.dsb_xGradient.setValue(0)
         self.dsb_yGradient.setValue(0)
         self.dsb_zGradient.setValue(0)
-        field.setXYZ(0,0,0)
+        field.setXYZ(np.array([0,0,0]))
+        field.setOverheatFlag(False)
+        field.setGradientFlag(False)
 
     def setFieldXYZGradient(self):
         field.setXGradient(10,self.dsb_xGradient.value())
         field.setYGradient(10,self.dsb_yGradient.value())
         field.setZGradient(10,self.dsb_zGradient.value())
         field.setMagnitude(0)
-
 
     # subthread
     def on_cbb_subThread(self,subThreadName):
