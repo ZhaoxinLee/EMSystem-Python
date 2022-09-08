@@ -3,6 +3,8 @@ from PyQt5.QtCore import QFile, QRegExp, QTimer, Qt, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMenu, QMessageBox
 from s826 import S826
 from monitor import Monitor
+from fieldManager import FieldManager
+from realTimePlot import CustomFigCanvas
 import time
 import numpy as np
 
@@ -14,6 +16,7 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 s826 = S826()
 monitor = Monitor(s826)
+field = FieldManager(s826)
 
 #=========================================================
 # a class that handles the signal and callbacks of the GUI
@@ -25,7 +28,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.updateRate = 15 # (ms) update rate of the GUI, vision, plot
         self.measuredData = [0]*16
         self.aiVoltage = [0]*16
-        self.B_Global_Desired = [0]*3
+        self.B_Global_Desired = [0]*8
         self.setupUi(self)
         # self.setupMonitor()
         self.setupTimer()
@@ -35,9 +38,9 @@ class GUI(QMainWindow,Ui_MainWindow):
         #     self.setupSubThread(field,vision)#,vision2)
         # else:
         #     self.setupSubThread(field,vision,joystick)
-        # self.setupRealTimePlot() # comment ou this line if you don't want a preview window
         self.connectSignals()
         self.linkWidgets()
+        self.setupRealTimePlot() # comment ou this line if you don't want a preview window
 
     #=====================================================
     # [override] terminate the subThread and clear currents when closing the window
@@ -67,9 +70,9 @@ class GUI(QMainWindow,Ui_MainWindow):
     # QTimer handles updates of the GUI, run at 60Hz
     #=====================================================
     def setupTimer(self):
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.update)
-        # self.timer.start(self.updateRate) # msec
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update)
+        self.timer.start(self.updateRate) # msec
 
         self.monitorTimer = QTimer()
         self.monitorTimer.timeout.connect(self.updateMonitor)
@@ -79,7 +82,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.captionTimer.timeout.connect(self.updateCaption)
         self.captionTimer.start(100)
 
-    # def update(self):
+    def update(self):
         # vision.updateFrame()
         # try:
         #     vision2
@@ -87,12 +90,12 @@ class GUI(QMainWindow,Ui_MainWindow):
         #     pass
         # else:
         #     vision2.updateFrame()
-        # try:
-        #     self.realTimePlot
-        # except AttributeError:
-        #     pass
-        # else:
-        #     self.updatePlot()
+        try:
+            self.realTimePlot
+        except AttributeError:
+            pass
+        else:
+            self.updatePlot()
         # try:
         #     joystick
         # except NameError:
@@ -107,16 +110,18 @@ class GUI(QMainWindow,Ui_MainWindow):
         # check that the temperature in any core is not above the max value
 #!!!!!!!!!!!!!!!!! NEVER change or comment below code!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!! This is the only place to moniter overheating of the system!!!!!!!!!!!
-        if any(self.measuredData[i+8] > 90 for i in range(8)):
-            field.setOverheatFlag(True)
-            msgBox = QMessageBox()
-            msgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
-            msgBox.setIcon(QMessageBox.Information)
-            msgBox.setText("<p>Overheating! Currents cleared...</p>")
-            msgBox.setWindowTitle("Warning!")
-            msgBox.setStandardButtons(QMessageBox.Ok)
-            msgBox.exec()
-            self.monitorTimer.stop()
+        # if any(self.measuredData[i+8] > 90 for i in range(8)):
+        #     print("Overheating! Currents clearing...")
+        #     field.overheatFlag = True
+        #     field.updateCurrent()
+        #     msgBox = QMessageBox()
+        #     msgBox.setWindowFlags(Qt.WindowStaysOnTopHint)
+        #     msgBox.setIcon(QMessageBox.Information)
+        #     msgBox.setText("<p>Overheating! Currents clearing...</p>")
+        #     msgBox.setWindowTitle("Warning!")
+        #     msgBox.setStandardButtons(QMessageBox.Ok)
+        #     msgBox.exec()
+        #     self.monitorTimer.stop()
 
     #=====================================================
     # Connect buttons etc. of the GUI to callback functions
@@ -127,11 +132,11 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.dsb_y.valueChanged.connect(self.setFieldXYZ)
         self.dsb_z.valueChanged.connect(self.setFieldXYZ)
         self.btn_clearCurrent.clicked.connect(self.clearField)
-        self.dsb_xxGradient.valueChanged.connect(self.setFieldXYZGradient)
-        self.dsb_xyGradient.valueChanged.connect(self.setFieldXYZGradient)
-        self.dsb_xzGradient.valueChanged.connect(self.setFieldXYZGradient)
-        self.dsb_yyGradient.valueChanged.connect(self.setFieldXYZGradient)
-        self.dsb_yzGradient.valueChanged.connect(self.setFieldXYZGradient)
+        self.dsb_xxGradient.valueChanged.connect(self.setFieldGradient)
+        self.dsb_xyGradient.valueChanged.connect(self.setFieldGradient)
+        self.dsb_xzGradient.valueChanged.connect(self.setFieldGradient)
+        self.dsb_yyGradient.valueChanged.connect(self.setFieldGradient)
+        self.dsb_yzGradient.valueChanged.connect(self.setFieldGradient)
 
         # Subthread Tab
         # self.cbb_subThread.currentTextChanged.connect(self.on_cbb_subThread)
@@ -211,41 +216,50 @@ class GUI(QMainWindow,Ui_MainWindow):
     #=====================================================
     def setupRealTimePlot(self):
         self.realTimePlot = CustomFigCanvas()
+        self.realTimePlot2 = CustomFigCanvas()
         self.LAYOUT_A.addWidget(self.realTimePlot, *(0,0)) # put the preview window in the layout
         self.btn_zoom.clicked.connect(self.realTimePlot.zoom) # connect qt signal to zoom funcion
 
     def updatePlot(self):
-        #print(field.y)
-        self.realTimePlot.addDataX(field.x)
-        self.realTimePlot.addDataY(field.y)
-        self.realTimePlot.addDataZ(field.z)
+        self.realTimePlot.addDataX(self.dsb_x.value())
+        self.realTimePlot.addDataY(self.dsb_y.value())
+        self.realTimePlot.addDataZ(self.dsb_z.value())
 
     #=====================================================
     # Callback Functions
     #=====================================================
     # General control tab
     def setFieldXYZ(self):
-        self.B_Global_Desired = np.array([self.dsb_x.value(),self.dsb_y.value(),self.dsb_z.value()])
-        # print(self.B_Global_Desired)
+        self.B_Global_Desired[0] = self.dsb_x.value()/1000 # mT -> T
+        self.B_Global_Desired[1] = self.dsb_y.value()/1000 # mT -> T
+        self.B_Global_Desired[2] = self.dsb_z.value()/1000 # mT -> T
+        print(self.B_Global_Desired)
         field.setXYZ(self.B_Global_Desired)
         # field.setMagnitude(round(sqrt(pow(self.dsb_x.value(),2)+pow(self.dsb_y.value(),2)+pow(self.dsb_z.value(),2)),2))
+
+    def setFieldGradient(self):
+        self.B_Global_Desired[3] = self.dsb_xxGradient.value()/1000 # mT/m -> T/m
+        self.B_Global_Desired[4] = self.dsb_xyGradient.value()/1000 # mT/m -> T/m
+        self.B_Global_Desired[5] = self.dsb_xzGradient.value()/1000 # mT/m -> T/m
+        self.B_Global_Desired[6] = self.dsb_yyGradient.value()/1000 # mT/m -> T/m
+        self.B_Global_Desired[7] = self.dsb_yzGradient.value()/1000 # mT/m -> T/m
+        field.isGradControlled = True
+        field.setGradient(self.B_Global_Desired)
 
     def clearField(self):
         self.dsb_x.setValue(0)
         self.dsb_y.setValue(0)
         self.dsb_z.setValue(0)
-        self.dsb_xGradient.setValue(0)
-        self.dsb_yGradient.setValue(0)
-        self.dsb_zGradient.setValue(0)
-        field.setXYZ(np.array([0,0,0]))
-        field.setOverheatFlag(False)
-        field.setGradientFlag(False)
-
-    def setFieldXYZGradient(self):
-        field.setXGradient(10,self.dsb_xGradient.value())
-        field.setYGradient(10,self.dsb_yGradient.value())
-        field.setZGradient(10,self.dsb_zGradient.value())
-        field.setMagnitude(0)
+        self.dsb_xxGradient.setValue(0)
+        self.dsb_xyGradient.setValue(0)
+        self.dsb_xzGradient.setValue(0)
+        self.dsb_yyGradient.setValue(0)
+        self.dsb_yzGradient.setValue(0)
+        self.B_Global_Desired = [0]*8
+        field.setXYZ(self.B_Global_Desired)
+        field.setGradient(self.B_Global_Desired)
+        field.isGradControlled = False
+        print('Currents cleared!')
 
     # subthread
     def on_cbb_subThread(self,subThreadName):

@@ -18,19 +18,17 @@ S826_CM_OM_NOTZERO = 3 << 18
 TMR_MODE = S826_CM_K_1MHZ | S826_CM_UD_REVERSE | S826_CM_PX_ZERO | S826_CM_PX_START | S826_CM_OM_NOTZERO
 CLEAR_BITS = 0x0000000
 
-RANGE_PARAM = [[0,5],[0,10],[-5,10],[-10,20]] # DAC rangeCode = 0, 1, 2, 3     [lowerV,rangeV]
-RANGE_PARAM_2 = [[-10,20],[-5,10],[-2,4],[-1,2]] # ADC rangeCode = 0, 1, 2, 3     [lowerV,rangeV]
+RANGE_PARAM = [[0,5,5],[0,10,10],[-5,10,5],[-10,20,10]] # DAC rangeCode = 0, 1, 2, 3     [minV,rangeV,maxV]
+RANGE_PARAM_2 = [[-10,20,10],[-5,10,5],[-2,4,2],[-1,2,1]] # ADC rangeCode = 0, 1, 2, 3     [minV,rangeV,maxV]
 
 
 
 class S826(object):
     def __init__(self):
-        self.lowerV = [-5,-5,-5,-5,-5,-5,-5,-5]  # default range selection = 2
-        self.rangeV = [10,10,10,10,10,10,10,10]  # default range selection = 2
-        self.lowerV_2 = [-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10,-10]  # default range selection = 0
-        self.rangeV_2 = [20,20,20,20,20,20,20,20,20,20,20,20,20,20,20,20]  # default range selection = 0
         self.boardConnected = False
         self.aiV = [0]*16
+        self.dacRangeCode = 3 # default range selection = 3, -10V to 10V
+        self.adcRangeCode = 0 # default range selection = 0, -10V to 10V
         boardflags  = self.s826_init() # Here 0 means no board and 1 mean board 0 found, for only 1 board connected the function should return 2^(ID#)
         if boardflags != 2:
             print('Cannot detect s826 board. Error code: {}'.format(boardflags))
@@ -56,14 +54,33 @@ class S826(object):
             self.X826(s826dll.S826_AdcEnableWrite(BOARD, 0))
         s826dll.S826_SystemClose()
 
+    def rangeTest(self,rangeCode,aoV):
+        if rangeCode == 0: # 0 to 5V
+            if aoV>RANGE_PARAM[0][2] or aoV<RANGE_PARAM[0][0]:
+                return -1
+        elif rangeCode == 1: #
+            if aoV>RANGE_PARAM[1][2] or aoV<RANGE_PARAM[1][0]:
+                return -1
+        elif rangeCode == 2:
+            if aoV>RANGE_PARAM[2][2] or aoV<RANGE_PARAM[2][0]:
+                return -1
+        elif rangeCode == 3:
+            if aoV>RANGE_PARAM[3][2] or aoV<RANGE_PARAM[3][0]:
+                return -1
+        else:
+            print("Error: Range selection is invalid.")
+            return -1
+        return 0
+
     def s826_initDac(self):
         for i in range(8):
-            self.s826_setDacRange(i,2) # default range selection = 2
+        # rangeCode: 0: 0 +5V; 1: 0 +10V; 2: -5 +5V; 3:-10 +10V.
+            self.X826(s826dll.S826_DacRangeWrite(BOARD,i,self.dacRangeCode,0)) # default range selection = 3, -10V to 10V
 
     def s826_initAdc(self):
         for i in range(16):
-            # self.s826_setAdcRange(i,0) # default range selection = 0
-            self.X826(s826dll.S826_AdcSlotConfigWrite(BOARD,i,i,TSETTLE,0))
+        # rangeCode: 0: -10 +10V; 1: -5 +5V; 2: -2 +2V; 3:-1 +1V.
+            self.X826(s826dll.S826_AdcSlotConfigWrite(BOARD,i,i,TSETTLE,self.adcRangeCode)) # default range selection = 0, -10V to 10V
         self.X826(s826dll.S826_AdcSlotlistWrite(BOARD, 0xFFFF, 0)) # enable all ADC timeslots
         # slotlist = pointer(c_uint())
         # self.X826(s826dll.S826_AdcSlotlistRead(BOARD, slotlist))
@@ -71,36 +88,39 @@ class S826(object):
         self.X826(s826dll.S826_AdcTrigModeWrite(BOARD, 0)) # disable ADC hardware triggering, use continuous mode
         self.X826(s826dll.S826_AdcEnableWrite(BOARD, 1)) # enable ADC conversions
 
-    # ======================================================================
-    # rangeCode: 0: 0 +5V; 1: 0 +10V; 2: -5 +5V; 3:-10 +10V.
-    # ======================================================================
-    def s826_setDacRange(self,chan,rangeCode):
-        self.lowerV[chan] = RANGE_PARAM[rangeCode][0]
-        self.rangeV[chan] = RANGE_PARAM[rangeCode][1]
-        self.X826(s826dll.S826_DacRangeWrite(BOARD,chan,rangeCode,0)) # BOARD, chan, rangeCode, output V
+# ======================================================================
+# Set 8 AO channels.
+# chan : DAC channel # in the range 0 to 7.
+# outputV: Desired analog output voltage (can be positive and negative).
+# ======================================================================
+    def s826_aoWriteAll(self,aoV):
+        print("outputV:",aoV)
+        slot_setpoint  = 0
+        slot_rangeCode = 3
+        runmode = 0
+        for i in range(8):
+            errcode = s826dll.S826_DacRead(BOARD, i, slot_rangeCode, slot_setpoint, runmode)
+            if slot_rangeCode != self.dacRangeCode:
+                print("Error: Slot voltage range code does not match initialized range code.")
+                return -1
+            testInput = self.rangeTest(self.dacRangeCode,aoV[i])
+            if testInput == -1:
+                print("Error: Output voltage is outside the range.")
+                return -1
+        setpoint = [0]*8
+        for i in range(8):
+            setpoint[i] = int((aoV[i]-RANGE_PARAM[self.dacRangeCode][0])/RANGE_PARAM[self.dacRangeCode][1] * 0xFFFF) # (outputV-lowerV)/rangeV*0xffff
+            print("setpoint:",setpoint[i],bin(setpoint[i]))
+            errcode = s826dll.S826_DacDataWrite(BOARD, i, setpoint[i], 0)
 
-    # ======================================================================
-    # rangeCode: 0: -10 +10V; 1: -5 +5V; 2: -2 +2V; 3:-1 +1V.
-    # ======================================================================
-    def s826_setAdcRange(self,chan,rangeCode):
-        self.lowerV_2[chan] = RANGE_PARAM_2[rangeCode][0]
-        self.rangeV_2[chan] = RANGE_PARAM_2[rangeCode][1]
-        self.X826(s826dll.S826_AdcSlotConfigWrite(BOARD,chan,chan,TSETTLE,rangeCode)) # BOARD, timeslot, chan, tsettle, range
-
-
-    # ======================================================================
-    # Set 1 AO channel.
-    # chan : DAC channel # in the range 0 to 7.
-    # outputV: Desired analog output voltage (can be positive and negative).
-    # ======================================================================
-    def s826_aoPin(self,chan,outputV):
-        lowerV = self.lowerV[chan]
-        rangeV = self.rangeV[chan]
-        setpoint = int((outputV-lowerV)/rangeV*0xffff)
-        self.X826(s826dll.S826_DacDataWrite(BOARD,chan,setpoint,0))
+    # def s826_aoPin(self,chan,outputV):
+    #     lowerV = self.lowerV[chan]
+    #     rangeV = self.rangeV[chan]
+    #     setpoint = int((outputV-lowerV)/rangeV*0xffff)
+    #     self.X826(s826dll.S826_DacDataWrite(BOARD,chan,setpoint,0))
 
 # ======================================================================
-# Set 16 AI channel.
+# Set 16 AI channels.
 # chan : ADC channel # in the range 0 to 15.
 # chan 8-15: thermometer reading.
 # ======================================================================
