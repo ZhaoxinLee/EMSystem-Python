@@ -13,8 +13,16 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.addedDataX = []
         self.addedDataY = []
         self.addedDataZ = []
-        # self.addedData
+        self.addedDataA1 = []
+        self.addedDataA2 = []
+        self.addedDataA3 = []
+        self.addedDataA4 = []
+        self.addedDataA5 = []
+        self.addedDataA6 = []
+        self.addedDataA7 = []
+        self.addedDataA8 = []
         self.ylimRange = [-32,32]
+        self.ylimRange2 = [-24,24]
         self.isZoomed = False
         # print(matplotlib.__version__)
 
@@ -24,6 +32,15 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.x = (self.t * 0.0)
         self.y = (self.t * 0.0)
         self.z = (self.t * 0.0)
+        self.a1 = (self.t * 0.0)
+        self.a2 = (self.t * 0.0)
+        self.a3 = (self.t * 0.0)
+        self.a4 = (self.t * 0.0)
+        self.a5 = (self.t * 0.0)
+        self.a6 = (self.t * 0.0)
+        self.a7 = (self.t * 0.0)
+        self.a8 = (self.t * 0.0)
+
         # The window
         self.fig = Figure(figsize=(5,5), dpi=100)
         self.fig.patch.set_facecolor((0.98, 0.98, 0.98))
@@ -77,6 +94,48 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax2.add_line(copy(self.line22))
         self.ax2.add_line(copy(self.line22_tail))
         self.ax2.add_line(copy(self.line22_head))
+        # line3 in plot 2
+        self.line23 = Line2D([], [], color='tab:red')
+        self.line23_tail = Line2D([], [], color='tab:red', linewidth=2)
+        self.line23_head = Line2D([], [], color='tab:red', marker='o', markeredgecolor='tab:red')
+        self.ax2.add_line(copy(self.line23))
+        self.ax2.add_line(copy(self.line23_tail))
+        self.ax2.add_line(copy(self.line23_head))
+        # line4 in plot 2
+        self.line24 = Line2D([], [], color='tab:red')
+        self.line24_tail = Line2D([], [], color='tab:red', linewidth=2)
+        self.line24_head = Line2D([], [], color='tab:red', marker='o', markeredgecolor='tab:red')
+        self.ax2.add_line(copy(self.line24))
+        self.ax2.add_line(copy(self.line24_tail))
+        self.ax2.add_line(copy(self.line24_head))
+        # line5 in plot 2
+        self.line25 = Line2D([], [], color='tab:red')
+        self.line25_tail = Line2D([], [], color='tab:red', linewidth=2)
+        self.line25_head = Line2D([], [], color='tab:red', marker='o', markeredgecolor='tab:red')
+        self.ax2.add_line(copy(self.line25))
+        self.ax2.add_line(copy(self.line25_tail))
+        self.ax2.add_line(copy(self.line25_head))
+        # line6 in plot 2
+        self.line26 = Line2D([], [], color='tab:red')
+        self.line26_tail = Line2D([], [], color='tab:red', linewidth=2)
+        self.line26_head = Line2D([], [], color='tab:red', marker='o', markeredgecolor='tab:red')
+        self.ax2.add_line(copy(self.line26))
+        self.ax2.add_line(copy(self.line26_tail))
+        self.ax2.add_line(copy(self.line26_head))
+        # line7 in plot 2
+        self.line27 = Line2D([], [], color='tab:red')
+        self.line27_tail = Line2D([], [], color='tab:red', linewidth=2)
+        self.line27_head = Line2D([], [], color='tab:red', marker='o', markeredgecolor='tab:red')
+        self.ax2.add_line(copy(self.line27))
+        self.ax2.add_line(copy(self.line27_tail))
+        self.ax2.add_line(copy(self.line27_head))
+        # line8 in plot 2
+        self.line28 = Line2D([], [], color='tab:red')
+        self.line28_tail = Line2D([], [], color='tab:red', linewidth=2)
+        self.line28_head = Line2D([], [], color='tab:red', marker='o', markeredgecolor='tab:red')
+        self.ax2.add_line(copy(self.line28))
+        self.ax2.add_line(copy(self.line28_tail))
+        self.ax2.add_line(copy(self.line28_head))
 
         self.ax2.set_xlim(0, self.numberOfSamplesStored - 1)
         self.ax2.set_ylim(self.ylimRange[0], self.ylimRange[1])
@@ -89,19 +148,35 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
     def addDataY(self, value): self.addedDataY.append(value)
     def addDataZ(self, value): self.addedDataZ.append(value)
 
+    def addDataA1(self, value): self.addedDataA1.append(value)
+    def addDataA2(self, value): self.addedDataA2.append(value)
+    def addDataA3(self, value): self.addedDataA3.append(value)
+    def addDataA4(self, value): self.addedDataA4.append(value)
+    def addDataA5(self, value): self.addedDataA5.append(value)
+    def addDataA6(self, value): self.addedDataA6.append(value)
+    def addDataA7(self, value): self.addedDataA7.append(value)
+    def addDataA8(self, value): self.addedDataA8.append(value)
+
     def new_frame_seq(self):
         return iter(range(self.t.size))
 
     def _init_draw(self):
         lines = [self.line11, self.line11_tail, self.line11_head,self.line12, self.line12_tail, self.line12_head,self.line13, self.line13_tail, self.line13_head]
+        lines2 = [self.line21, self.line21_tail, self.line21_head, self.line22, self.line22_tail, self.line22_head, self.line23, self.line23_tail, self.line23_head, \
+        self.line24, self.line24_tail, self.line24_head, self.line25, self.line25_tail, self.line25_head, self.line26, self.line26_tail, self.line26_head, \
+        self.line27, self.line27_tail, self.line27_head, self.line28, self.line28_tail, self.line28_head]
         for l in lines:
             l.set_data([], [])
+        for l2 in lines2:
+            l2.set_data([], [])
 
     def zoom(self, value):
         if self.isZoomed:
             self.ax1.set_ylim(self.ylimRange[0],self.ylimRange[1])
+            self.ax2.set_ylim(self.ylimRange2[0],self.ylimRange2[1])
         else:
             self.ax1.set_ylim(self.ylimRange[0]/2,self.ylimRange[1]/2)
+            self.ax2.set_ylim(self.ylimRange2[0]/2,self.ylimRange2[1]/2)
         self.draw()
         self.isZoomed = not self.isZoomed
 
@@ -111,9 +186,25 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
             self.x = np.roll(self.x, -1)
             self.y = np.roll(self.y, -1)
             self.z = np.roll(self.z, -1)
+            self.a1 = np.roll(self.a1, -1)
+            self.a2 = np.roll(self.a2, -1)
+            self.a3 = np.roll(self.a3, -1)
+            self.a4 = np.roll(self.a4, -1)
+            self.a5 = np.roll(self.a5, -1)
+            self.a6 = np.roll(self.a6, -1)
+            self.a7 = np.roll(self.a7, -1)
+            self.a8 = np.roll(self.a8, -1)
             self.x[-1] = self.addedDataX[0]
             self.y[-1] = self.addedDataY[0]
             self.z[-1] = self.addedDataZ[0]
+            self.a1[-1] = self.addedDataA1[0]
+            self.a2[-1] = self.addedDataA2[0]
+            self.a3[-1] = self.addedDataA3[0]
+            self.a4[-1] = self.addedDataA4[0]
+            self.a5[-1] = self.addedDataA5[0]
+            self.a6[-1] = self.addedDataA6[0]
+            self.a7[-1] = self.addedDataA7[0]
+            self.a8[-1] = self.addedDataA8[0]
             del(self.addedDataX[0])
             del(self.addedDataY[0])
             del(self.addedDataZ[0])
