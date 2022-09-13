@@ -95,13 +95,13 @@ class S826(object):
 # ======================================================================
     def s826_aoWriteAll(self,aoV):
         print("outputV:",aoV)
-        slot_setpoint  = 0
-        slot_rangeCode = 3
+        slot_setpoint  = pointer(c_uint())
+        slot_rangeCode = pointer(c_uint())
         runmode = 0
         for i in range(8):
             errcode = s826dll.S826_DacRead(BOARD, i, slot_rangeCode, slot_setpoint, runmode)
-            if slot_rangeCode != self.dacRangeCode:
-                print("Error: Slot voltage range code does not match initialized range code.")
+            if slot_rangeCode[0] != self.dacRangeCode:
+                print("Error: Slot voltage range code does not match initialized range code. Slot range code:",slot_rangeCode[0])
                 return -1
             testInput = self.rangeTest(self.dacRangeCode,aoV[i])
             if testInput == -1:
@@ -127,7 +127,7 @@ class S826(object):
     def s826_aiReadAll(self,aiV):
         tstamp = None
         # slotlist = bytes(c_uint(0xFFFF))
-        slotlist = pointer(c_uint(0xFFFF))
+        slotlist = pointer(c_uint(0xFF00))
         adcbuf = pointer(c_int())
         # for i in range(1):
 

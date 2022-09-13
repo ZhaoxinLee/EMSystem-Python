@@ -40,7 +40,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         #     self.setupSubThread(field,vision,joystick)
         self.connectSignals()
         self.linkWidgets()
-        self.setupRealTimePlot() # comment ou this line if you don't want a preview window
+        # self.setupRealTimePlot() # comment ou this line if you don't want a preview window
 
     #=====================================================
     # [override] terminate the subThread and clear currents when closing the window
@@ -70,9 +70,9 @@ class GUI(QMainWindow,Ui_MainWindow):
     # QTimer handles updates of the GUI, run at 60Hz
     #=====================================================
     def setupTimer(self):
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update)
-        self.timer.start(self.updateRate) # msec
+        # self.timer = QTimer()
+        # self.timer.timeout.connect(self.update)
+        # self.timer.start(self.updateRate) # msec
 
         self.monitorTimer = QTimer()
         self.monitorTimer.timeout.connect(self.updateMonitor)
