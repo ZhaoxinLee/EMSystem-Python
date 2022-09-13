@@ -216,7 +216,7 @@ class GUI(QMainWindow,Ui_MainWindow):
     #=====================================================
     def setupRealTimePlot(self):
         self.realTimePlot = CustomFigCanvas()
-        self.realTimePlot2 = CustomFigCanvas()
+        #self.realTimePlot2 = CustomFigCanvas()
         self.LAYOUT_A.addWidget(self.realTimePlot, *(0,0)) # put the preview window in the layout
         self.btn_zoom.clicked.connect(self.realTimePlot.zoom) # connect qt signal to zoom funcion
 
@@ -224,6 +224,14 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.realTimePlot.addDataX(self.dsb_x.value())
         self.realTimePlot.addDataY(self.dsb_y.value())
         self.realTimePlot.addDataZ(self.dsb_z.value())
+        self.realTimePlot.addDataA1(field.currentSetpoints[0])
+        self.realTimePlot.addDataA2(field.currentSetpoints[1])
+        self.realTimePlot.addDataA3(field.currentSetpoints[2])
+        self.realTimePlot.addDataA4(field.currentSetpoints[3])
+        self.realTimePlot.addDataA5(field.currentSetpoints[4])
+        self.realTimePlot.addDataA6(field.currentSetpoints[5])
+        self.realTimePlot.addDataA7(field.currentSetpoints[6])
+        self.realTimePlot.addDataA8(field.currentSetpoints[7])
 
     #=====================================================
     # Callback Functions

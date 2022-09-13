@@ -75,9 +75,6 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax1.set_xlim(0, self.numberOfSamplesStored - 1)
         self.ax1.set_ylim(self.ylimRange[0], self.ylimRange[1])
         self.ax1.get_xaxis().set_visible(False)
-        # init
-        FigureCanvas.__init__(self, self.fig)
-        TimedAnimation.__init__(self, self.fig, interval = 50, blit = True)
 
 
         # line1 in plot 2
@@ -136,10 +133,14 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.ax2.add_line(copy(self.line28))
         self.ax2.add_line(copy(self.line28_tail))
         self.ax2.add_line(copy(self.line28_head))
-
+        #lim
         self.ax2.set_xlim(0, self.numberOfSamplesStored - 1)
         self.ax2.set_ylim(self.ylimRange[0], self.ylimRange[1])
         self.ax2.get_xaxis().set_visible(False)
+
+        # init
+        FigureCanvas.__init__(self, self.fig)
+        TimedAnimation.__init__(self, self.fig, interval = 50, blit = True)
 
     # ========================================================
     # connected to signel callback signal
@@ -208,6 +209,14 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
             del(self.addedDataX[0])
             del(self.addedDataY[0])
             del(self.addedDataZ[0])
+            del(self.addedDataA1[0])
+            del(self.addedDataA2[0])
+            del(self.addedDataA3[0])
+            del(self.addedDataA4[0])
+            del(self.addedDataA5[0])
+            del(self.addedDataA6[0])
+            del(self.addedDataA7[0])
+            del(self.addedDataA8[0])
         self.line11.set_data(self.t[ 0 : self.t.size - margin ], self.x[ 0 : self.t.size - margin ])
         self.line11_tail.set_data(np.append(self.t[-10:-1 - margin], self.t[-1 - margin]), np.append(self.x[-10:-1 - margin], self.x[-1 - margin]))
         self.line11_head.set_data(self.t[-1 - margin], self.x[-1 - margin])
@@ -221,3 +230,37 @@ class CustomFigCanvas(FigureCanvas, TimedAnimation):
         self.line13_head.set_data(self.t[-1 - margin], self.z[-1 - margin])
 
         self._drawn_artists = [self.line11, self.line11_tail, self.line11_head,self.line12, self.line12_tail, self.line12_head,self.line13, self.line13_tail, self.line13_head]
+
+        self.line21.set_data(self.t[ 0 : self.t.size - margin ], self.a1[ 0 : self.t.size - margin ])
+        self.line21_tail.set_data(np.append(self.t[-10:-1 - margin], self.t[-1 - margin]), np.append(self.a1[-10:-1 - margin], self.a1[-1 - margin]))
+        self.line21_head.set_data(self.t[-1 - margin], self.a1[-1 - margin])
+
+        self.line22.set_data(self.t[ 0 : self.t.size - margin ], self.a2[ 0 : self.t.size - margin ])
+        self.line22_tail.set_data(np.append(self.t[-10:-1 - margin], self.t[-1 - margin]), np.append(self.a2[-10:-1 - margin], self.a2[-1 - margin]))
+        self.line22_head.set_data(self.t[-1 - margin], self.a2[-1 - margin])
+
+        self.line23.set_data(self.t[ 0 : self.t.size - margin ], self.a3[ 0 : self.t.size - margin ])
+        self.line23_tail.set_data(np.append(self.t[-10:-1 - margin], self.t[-1 - margin]), np.append(self.a3[-10:-1 - margin], self.a3[-1 - margin]))
+        self.line23_head.set_data(self.t[-1 - margin], self.a3[-1 - margin])
+
+        self.line24.set_data(self.t[ 0 : self.t.size - margin ], self.a4[ 0 : self.t.size - margin ])
+        self.line24_tail.set_data(np.append(self.t[-10:-1 - margin], self.t[-1 - margin]), np.append(self.a4[-10:-1 - margin], self.a4[-1 - margin]))
+        self.line24_head.set_data(self.t[-1 - margin], self.a4[-1 - margin])
+
+        self.line25.set_data(self.t[ 0 : self.t.size - margin ], self.a5[ 0 : self.t.size - margin ])
+        self.line25_tail.set_data(np.append(self.t[-10:-1 - margin], self.t[-1 - margin]), np.append(self.a5[-10:-1 - margin], self.a5[-1 - margin]))
+        self.line25_head.set_data(self.t[-1 - margin], self.a5[-1 - margin])
+
+        self.line26.set_data(self.t[ 0 : self.t.size - margin ], self.a6[ 0 : self.t.size - margin ])
+        self.line26_tail.set_data(np.append(self.t[-10:-1 - margin], self.t[-1 - margin]), np.append(self.a6[-10:-1 - margin], self.a6[-1 - margin]))
+        self.line26_head.set_data(self.t[-1 - margin], self.a6[-1 - margin])
+
+        self.line27.set_data(self.t[ 0 : self.t.size - margin ], self.a7[ 0 : self.t.size - margin ])
+        self.line27_tail.set_data(np.append(self.t[-10:-1 - margin], self.t[-1 - margin]), np.append(self.a7[-10:-1 - margin], self.a7[-1 - margin]))
+        self.line27_head.set_data(self.t[-1 - margin], self.a7[-1 - margin])
+
+        self.line28.set_data(self.t[ 0 : self.t.size - margin ], self.a8[ 0 : self.t.size - margin ])
+        self.line28_tail.set_data(np.append(self.t[-10:-1 - margin], self.t[-1 - margin]), np.append(self.a8[-10:-1 - margin], self.a8[-1 - margin]))
+        self.line28_head.set_data(self.t[-1 - margin], self.a8[-1 - margin])
+
+        # self._drawn_artists = [self.line21, self.line21_tail, self.line21_head,self.line22, self.line22_tail, self.line22_head,self.line23, self.line23_tail, self.line23_head]
