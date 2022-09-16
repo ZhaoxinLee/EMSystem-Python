@@ -9,7 +9,6 @@ TMAX = 500 # ADC. Max time allowed to read analog signals
 # As we cannot export macros from c++ dll file, here we manually define the macros we are going to use only
 # For other macros that will be used for further s826 functions, please refer to s826api.h to see the definition
 COUNTER_CHAN = 5 # Counter channel number
-# TMR_MODE  (S826_CM_K_1MHZ | S826_CM_UD_REVERSE | S826_CM_PX_ZERO | S826_CM_PX_START | S826_CM_OM_NOTZERO)
 S826_CM_K_1MHZ = 2 << 4
 S826_CM_UD_REVERSE = 1 << 22
 S826_CM_PX_ZERO = 1 << 13
@@ -94,7 +93,7 @@ class S826(object):
 # outputV: Desired analog output voltage (can be positive and negative).
 # ======================================================================
     def s826_aoWriteAll(self,aoV):
-        print("outputV:",aoV)
+        # print("outputV:",aoV)
         slot_setpoint  = pointer(c_uint())
         slot_rangeCode = pointer(c_uint())
         runmode = 0
@@ -110,14 +109,8 @@ class S826(object):
         setpoint = [0]*8
         for i in range(8):
             setpoint[i] = int((aoV[i]-RANGE_PARAM[self.dacRangeCode][0])/RANGE_PARAM[self.dacRangeCode][1] * 0xFFFF) # (outputV-lowerV)/rangeV*0xffff
-            print("setpoint:",setpoint[i],bin(setpoint[i]))
+            # print("setpoint:",setpoint[i],bin(setpoint[i]))
             errcode = s826dll.S826_DacDataWrite(BOARD, i, setpoint[i], 0)
-
-    # def s826_aoPin(self,chan,outputV):
-    #     lowerV = self.lowerV[chan]
-    #     rangeV = self.rangeV[chan]
-    #     setpoint = int((outputV-lowerV)/rangeV*0xffff)
-    #     self.X826(s826dll.S826_DacDataWrite(BOARD,chan,setpoint,0))
 
 # ======================================================================
 # Set 16 AI channels.

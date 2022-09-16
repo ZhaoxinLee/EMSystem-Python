@@ -30,7 +30,6 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.aiVoltage = [0]*16
         self.B_Global_Desired = [0]*8
         self.setupUi(self)
-        # self.setupMonitor()
         self.setupTimer()
         # try:
         #     joystick
@@ -40,7 +39,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         #     self.setupSubThread(field,vision,joystick)
         self.connectSignals()
         self.linkWidgets()
-        # self.setupRealTimePlot() # comment ou this line if you don't want a preview window
+        self.setupRealTimePlot() # comment on this line if you don't want a preview window
 
     #=====================================================
     # [override] terminate the subThread and clear currents when closing the window
@@ -70,9 +69,9 @@ class GUI(QMainWindow,Ui_MainWindow):
     # QTimer handles updates of the GUI, run at 60Hz
     #=====================================================
     def setupTimer(self):
-        # self.timer = QTimer()
-        # self.timer.timeout.connect(self.update)
-        # self.timer.start(self.updateRate) # msec
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update)
+        self.timer.start(self.updateRate) # msec
 
         self.monitorTimer = QTimer()
         self.monitorTimer.timeout.connect(self.updateMonitor)
@@ -106,7 +105,7 @@ class GUI(QMainWindow,Ui_MainWindow):
 
     def updateMonitor(self):
         self.measuredData = monitor.setMonitor()
-        # print(self.measuredData)
+
         # check that the temperature in any core is not above the max value
 #!!!!!!!!!!!!!!!!! NEVER change or comment below code!!!!!!!!!!!!!!!!!!!!!!!
 #!!!!!!!!!!! This is the only place to moniter overheating of the system!!!!!!!!!!!
@@ -182,6 +181,14 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.lbl_temp_5.setText(str(self.measuredData[13]))
         self.lbl_temp_6.setText(str(self.measuredData[14]))
         self.lbl_temp_7.setText(str(self.measuredData[15]))
+        self.lbl_V0.setText(str(round(field.outputAnalogVoltages[0],2)))
+        self.lbl_V1.setText(str(round(field.outputAnalogVoltages[1],2)))
+        self.lbl_V2.setText(str(round(field.outputAnalogVoltages[2],2)))
+        self.lbl_V3.setText(str(round(field.outputAnalogVoltages[3],2)))
+        self.lbl_V4.setText(str(round(field.outputAnalogVoltages[4],2)))
+        self.lbl_V5.setText(str(round(field.outputAnalogVoltages[5],2)))
+        self.lbl_V6.setText(str(round(field.outputAnalogVoltages[6],2)))
+        self.lbl_V7.setText(str(round(field.outputAnalogVoltages[7],2)))
 
     #=====================================================
     # Thread Example
@@ -241,7 +248,6 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.B_Global_Desired[0] = self.dsb_x.value()/1000 # mT -> T
         self.B_Global_Desired[1] = self.dsb_y.value()/1000 # mT -> T
         self.B_Global_Desired[2] = self.dsb_z.value()/1000 # mT -> T
-        print(self.B_Global_Desired)
         field.setXYZ(self.B_Global_Desired)
         # field.setMagnitude(round(sqrt(pow(self.dsb_x.value(),2)+pow(self.dsb_y.value(),2)+pow(self.dsb_z.value(),2)),2))
 
