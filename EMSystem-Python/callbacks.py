@@ -4,7 +4,11 @@ from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMenu, QMess
 from s826 import S826
 from monitor import Monitor
 from fieldManager import FieldManager
+from vision import Vision
+# from vision2 import Vision2
+from subThread import SubThread
 from realTimePlot import CustomFigCanvas
+from XboxController import Xbox
 import time
 import numpy as np
 
@@ -17,6 +21,9 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 s826 = S826()
 monitor = Monitor(s826)
 field = FieldManager(s826)
+vision = Vision(field,'Video') # greyscale mode
+# vision2 = Vision2(field,index=2,type='firewire') # greyscale mode
+# joystick = Xbox()
 
 #=========================================================
 # a class that handles the signal and callbacks of the GUI
@@ -31,12 +38,12 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.B_Global_Desired = [0]*8
         self.setupUi(self)
         self.setupTimer()
-        # try:
-        #     joystick
-        # except NameError:
-        #     self.setupSubThread(field,vision)#,vision2)
-        # else:
-        #     self.setupSubThread(field,vision,joystick)
+        try:
+            joystick
+        except NameError:
+            self.setupSubThread(field,vision)#,vision2)
+        else:
+            self.setupSubThread(field,vision,joystick)
         self.connectSignals()
         self.linkWidgets()
         self.setupRealTimePlot() # comment on this line if you don't want a preview window
@@ -82,7 +89,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.captionTimer.start(100)
 
     def update(self):
-        # vision.updateFrame()
+        vision.updateFrame()
         # try:
         #     vision2
         # except NameError:

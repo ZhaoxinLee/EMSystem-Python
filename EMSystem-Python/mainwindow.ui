@@ -1131,61 +1131,6 @@
      </item>
      <item>
       <property name="text">
-       <string>joystick_test</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>sin_flap</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>pull</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>zig_flap</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>square_wave_z</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>square_wave_x</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>osc_z</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>osc_x</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>tianqiGripper</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>drawing</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>twistField</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
        <string>rotateXY</string>
       </property>
      </item>
@@ -1201,37 +1146,17 @@
      </item>
      <item>
       <property name="text">
-       <string>osc_saw</string>
+       <string>osc_x</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>osc_triangle</string>
+       <string>osc_z</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>osc_square</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>osc_sin</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>oni_cutting</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>ellipse</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>examplePiecewiseFunction</string>
+       <string>joystick_test</string>
       </property>
      </item>
     </widget>
