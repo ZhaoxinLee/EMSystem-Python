@@ -12,7 +12,7 @@ def subthreadNotDefined():
 class SubThread(QThread):
     statusSignal = pyqtSignal(str)
 
-    def __init__(self,field,vision=None,vision2=None,joystick=None,parent=None,):
+    def __init__(self,field,vision=None,vision2=None,joystick=None,parent=None):
         super(SubThread, self).__init__(parent)   # what is this line for Jason>>>?
         self.stopped = False
         self.mutex = QMutex()

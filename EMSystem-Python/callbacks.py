@@ -5,7 +5,7 @@ from s826 import S826
 from monitor import Monitor
 from fieldManager import FieldManager
 from vision import Vision
-# from vision2 import Vision2
+from vision2 import Vision2
 from subThread import SubThread
 from realTimePlot import CustomFigCanvas
 from XboxController import Xbox
@@ -21,8 +21,6 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 s826 = S826()
 monitor = Monitor(s826)
 field = FieldManager(s826)
-vision = Vision(field,'Video') # greyscale mode
-# vision2 = Vision2(field,index=2,type='firewire') # greyscale mode
 # joystick = Xbox()
 
 #=========================================================
@@ -36,14 +34,16 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.measuredData = [0]*16
         self.aiVoltage = [0]*16
         self.B_Global_Desired = [0]*8
+        self.vision = None
+        self.vision2 = None
         self.setupUi(self)
         self.setupTimer()
         try:
             joystick
         except NameError:
-            self.setupSubThread(field,vision)#,vision2)
+            self.setupSubThread(field,self.vision,self.vision2)
         else:
-            self.setupSubThread(field,vision,joystick)
+            self.setupSubThread(field,self.vision,self.vision2,joystick=None)
         self.connectSignals()
         self.linkWidgets()
         self.setupRealTimePlot() # comment on this line if you don't want a preview window
@@ -53,7 +53,8 @@ class GUI(QMainWindow,Ui_MainWindow):
     #=====================================================
     def closeEvent(self,event):
         #self.thrd.stop()
-        # self.timer.stop()
+        self.timer.stop()
+        self.captionTimer.stop()
         # vision.closeCamera()
         # try:
         #     vision2
@@ -61,13 +62,13 @@ class GUI(QMainWindow,Ui_MainWindow):
         #     pass
         # else:
         #     vision2.closeCamera()
-        # try:
-        #     joystick
-        # except NameError:
-        #     pass
-        # else:
-        #     joystick.quit()
-        # self.clearField()
+        try:
+            joystick
+        except NameError:
+            pass
+        else:
+            joystick.quit()
+        self.clearField()
         s826.s826_close()
         event.accept()
 
@@ -80,22 +81,12 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.timer.timeout.connect(self.update)
         self.timer.start(self.updateRate) # msec
 
-        self.monitorTimer = QTimer()
-        self.monitorTimer.timeout.connect(self.updateMonitor)
-        self.monitorTimer.start(100)
-
         self.captionTimer = QTimer()
+        self.captionTimer.timeout.connect(self.updateMonitor)
         self.captionTimer.timeout.connect(self.updateCaption)
         self.captionTimer.start(100)
 
     def update(self):
-        vision.updateFrame()
-        # try:
-        #     vision2
-        # except NameError:
-        #     pass
-        # else:
-        #     vision2.updateFrame()
         try:
             self.realTimePlot
         except AttributeError:
@@ -108,7 +99,6 @@ class GUI(QMainWindow,Ui_MainWindow):
         #     pass
         # else:
         #     joystick.update()
-
 
     def updateMonitor(self):
         self.measuredData = monitor.setMonitor()
@@ -129,6 +119,34 @@ class GUI(QMainWindow,Ui_MainWindow):
         #     msgBox.exec()
         #     self.monitorTimer.stop()
 
+    def on_chb_camera1(self,state):
+        self.vision = Vision(field)
+        if state:
+            self.camera1Timer = QTimer()
+            self.camera1Timer.timeout.connect(self.updateCamera1)
+            self.camera1Timer.start(self.updateRate) # msec
+        else:
+            self.vision.close()
+            self.vision = None
+            self.camera1Timer.stop()
+
+    def on_chb_camera2(self,state):
+        self.vision2 = Vision2(field)
+        if state:
+            self.camera2Timer = QTimer()
+            self.camera2Timer.timeout.connect(self.updateCamera2)
+            self.camera2Timer.start(self.updateRate) # msec
+        else:
+            self.vision2.close()
+            self.vision2 = None
+            self.camera2Timer.stop()
+
+    def updateCamera1(self):
+        self.vision.updateFrame()
+
+    def updateCamera2(self):
+        self.vision2.updateFrame()
+
     #=====================================================
     # Connect buttons etc. of the GUI to callback functions
     #=====================================================
@@ -143,6 +161,16 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.dsb_xzGradient.valueChanged.connect(self.setFieldGradient)
         self.dsb_yyGradient.valueChanged.connect(self.setFieldGradient)
         self.dsb_yzGradient.valueChanged.connect(self.setFieldGradient)
+
+        # Camera Tab
+        self.btn_original.clicked.connect(self.on_btn_runOriginal)
+        self.btn_grayscale.clicked.connect(self.on_btn_runGrayscale)
+        self.btn_binary.clicked.connect(self.on_btn_runBinary)
+        self.btn_snapshot.clicked.connect(self.on_btn_snapshot)
+        self.btn_startRecording.clicked.connect(self.on_btn_startRecording)
+        self.btn_stopRecording.clicked.connect(self.on_btn_stopRecording)
+        self.chb_camera1.toggled.connect(self.on_chb_camera1)
+        self.chb_camera2.toggled.connect(self.on_chb_camera2)
 
         # Subthread Tab
         # self.cbb_subThread.currentTextChanged.connect(self.on_cbb_subThread)
@@ -281,6 +309,43 @@ class GUI(QMainWindow,Ui_MainWindow):
         field.setGradient(self.B_Global_Desired)
         field.isGradControlled = False
         print('Currents cleared!')
+
+    # Camera
+    def on_btn_runOriginal(self):
+        if self.vision != None:
+            self.vision.setOriginal()
+        if self.vision2 != None:
+            self.vision2.setOriginal()
+
+    def on_btn_runGrayscale(self):
+        if self.vision != None:
+            self.vision.setGrayscale()
+        if self.vision2 != None:
+            self.vision2.setGrayscale()
+
+    def on_btn_runBinary(self):
+        if self.vision != None:
+            self.vision.setThreshold(self.spb_threshval.value(),self.spb_maxval.value())
+        if self.vision2 != None:
+            self.vision2.setThreshold(self.spb_threshval.value(),self.spb_maxval.value())
+
+    def on_btn_snapshot(self):
+        if self.vision != None:
+            self.vision.setSnapshot()
+        if self.vision2 != None:
+            self.vision2.setSnapshot()
+
+    def on_btn_startRecording(self):
+        if self.vision != None:
+            self.vision.startRecording()
+        if self.vision2 != None:
+            self.vision2.startRecording()
+
+    def on_btn_stopRecording(self):
+        if self.vision != None:
+            self.vision.stopRecording()
+        if self.vision2 != None:
+            self.vision2.stopRecording()
 
     # subthread
     def on_cbb_subThread(self,subThreadName):
