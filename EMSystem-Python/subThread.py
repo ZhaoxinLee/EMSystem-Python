@@ -1,14 +1,14 @@
 import sys
 import time
-import pygame
+# import pygame
 from math import pi, sin, cos, sqrt, atan2, degrees,radians
 from PyQt5.QtCore import pyqtSignal, QMutexLocker, QMutex, QThread
 from numpy import sign
 
-pygame.init()
-pygame.joystick.init()
-joystick = pygame.joystick.Joystick(0)
-joystick.init()
+# pygame.init()
+# pygame.joystick.init()
+# joystick = pygame.joystick.Joystick(0)
+# joystick.init()
 
 def subthreadNotDefined():
     print('Subthread not defined.')
@@ -160,23 +160,23 @@ class SubThread(QThread):
         startTime = time.time()
         while True:
             t = time.time() - startTime
-            f = self.params[0]
-            m = self.params[1]
-            heading = self.params[2]
-            self.field.setFrequency(f)
-            self.field.setMagnitude(m)
-            theta = 2 * pi * f * t
-            # if f > 0:
-            #     if sin(theta) < 0:
-            #         theta = theta + pi
-            # else:
-            #     if sin(theta) > 0:
-            #         theta = theta + pi
-            fieldX = m * cosd(heading) * sin(theta)
-            fieldY = m * sind(heading) * sin(theta)
-            self.field.setX(fieldX)
-            self.field.setY(fieldY)
-            self.field.setZ(0)
+            # f = self.params[0]
+            # m = self.params[1]
+            # heading = self.params[2]
+            # self.field.setFrequency(f)
+            # self.field.setMagnitude(m)
+            # theta = 2 * pi * f * t
+            # # if f > 0:
+            # #     if sin(theta) < 0:
+            # #         theta = theta + pi
+            # # else:
+            # #     if sin(theta) > 0:
+            # #         theta = theta + pi
+            # fieldX = m * cosd(heading) * sin(theta)
+            # fieldY = m * sind(heading) * sin(theta)
+            # self.field.setX(fieldX)
+            # self.field.setY(fieldY)
+            # self.field.setZ(0)
             if self.stopped:
                 return
 
@@ -229,3 +229,9 @@ class SubThread(QThread):
         #     pygame.joystick.quit()
         #     pygame.quit()
         #     return
+
+    def cosd(val):
+        return cos(radians(val))
+
+    def sind(val):
+        return sin(radians(val))

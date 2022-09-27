@@ -5,7 +5,7 @@ import cv2, sys, os, time
 class Vision(object):
     def __init__(self,field):
         self.field = field
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
         if (self.cap.isOpened() == False):
             self.cap = cv2.VideoCapture("NoInput.mp4")
             self.frameCounter = 0

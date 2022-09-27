@@ -8,7 +8,7 @@ from vision import Vision
 from vision2 import Vision2
 from subThread import SubThread
 from realTimePlot import CustomFigCanvas
-from XboxController import Xbox
+# from XboxController import Xbox
 import time
 import numpy as np
 
@@ -99,6 +99,7 @@ class GUI(QMainWindow,Ui_MainWindow):
 
     def updateMonitor(self):
         self.measuredData = monitor.setMonitor()
+        # aiVoltage = s826.s826_aiReadAll(self.aiVoltage)
 
         # check that the temperature in any core is not above the max value
 #!!!!!!!!!!!!!!!!! NEVER change or comment below code!!!!!!!!!!!!!!!!!!!!!!!

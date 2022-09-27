@@ -28,6 +28,9 @@ class S826(object):
         self.aiV = [0]*16
         self.dacRangeCode = 3 # default range selection = 3, -10V to 10V
         self.adcRangeCode = 0 # default range selection = 0, -10V to 10V
+        self.tstamp = None
+        self.slotlist = pointer(c_uint(0xFFFF))
+        self.adcbuf = pointer(c_int())
         boardflags  = self.s826_init() # Here 0 means no board and 1 mean board 0 found, for only 1 board connected the function should return 2^(ID#)
         if boardflags != 2:
             print('Cannot detect s826 board. Error code: {}'.format(boardflags))
@@ -118,17 +121,14 @@ class S826(object):
 # chan 8-15: thermometer reading.
 # ======================================================================
     def s826_aiReadAll(self,aiV):
-        tstamp = None
         # slotlist = bytes(c_uint(0xFFFF))
-        slotlist = pointer(c_uint(0xFF00))
-        adcbuf = pointer(c_int())
         # for i in range(1):
 
         #     adcbuf[i] = c_int(1)
             # print('buf',adcbuf[i])
             # slotlist[i] = c_uint(1)
         # print('slot',bin(slotlist[0]))
-        errcode = s826dll.S826_AdcRead(BOARD, adcbuf, tstamp, slotlist, TMAX)
+        errcode = s826dll.S826_AdcRead(BOARD, self.adcbuf, self.tstamp, self.slotlist, TMAX)
         # if errcode == 0:
         #     print("Analog input read successfully...")
         # else:
@@ -137,7 +137,7 @@ class S826(object):
         # Read adc value for each channel
         resolution = 20.0 / 65536.0 # default range -10V to 10V
         for i in range(16):
-            singleReading = adcbuf[i] & 0xFFFF
+            singleReading = self.adcbuf[i] & 0xFFFF
             if singleReading & 0x8000:
                 aiV[i] = ( ( ~(singleReading-1) ) & 0xFFFF ) * resolution # subtract 1 due to range of integers being −32,768 to 32,767
                 aiV[i] = -1.0 * aiV[i]
@@ -145,9 +145,9 @@ class S826(object):
                 aiV[i] = singleReading * resolution
         # currentSenseAdj = [6.7501, 6.6705, 6.4118, 3.8831, 6.7703, 6.7703, 6.7107, 6.8500]
         # for i in range(8):
-        #     print("Analog input voltage 0-7:",bin(adcbuf[i]),aiV[i]*currentSenseAdj[i])
+        #     print("Analog input voltage 0-7:",bin(self.adcbuf[i]),aiV[i]*currentSenseAdj[i])
         # for i in range(8,16):
-        #     print("Analog input voltage 8-15:",bin(adcbuf[i]),20*aiV[i])
+        #     print("Analog input voltage 8-15:",bin(self.adcbuf[i]),20*aiV[i])
         return aiV
 
 # ERROR HANDLING
