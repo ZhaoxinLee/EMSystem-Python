@@ -5,6 +5,11 @@ from math import pi, sin, cos, sqrt, atan2, degrees,radians
 from PyQt5.QtCore import pyqtSignal, QMutexLocker, QMutex, QThread
 from numpy import sign
 
+pygame.init()
+pygame.joystick.init()
+joystick = pygame.joystick.Joystick(0)
+joystick.init()
+
 def subthreadNotDefined():
     print('Subthread not defined.')
     return
@@ -33,6 +38,7 @@ class SubThread(QThread):
         self.pretime = None
         self.mode = 0
         self.labelOnGui = {
+                        'default':['param0','param1','param2','param3','param4'],
                         'rotateXY':['Frequency (Hz)','Magniude (mT)','N/A','N/A','N/A'],
                         'rotateYZ': ['Frequency (Hz)','Magniude (mT)','N/A','N/A','N/A'],
                         'rotateXZ': ['Frequency (Hz)','Magniude (mT)','N/A','N/A','N/A'],
@@ -41,6 +47,7 @@ class SubThread(QThread):
                         'joystick_test':['N/A','N/A','N/A','N/A','N/A']
                         }
         self.defaultValOnGui = {
+                        'default':[0,0,0,0,0],
                         'rotateXY':[1,14,0,0,0],
                         'rotateXZ':[2,2,0,0,0],
                         'rotateYZ':[3,3,0,0,0],
@@ -49,6 +56,7 @@ class SubThread(QThread):
                         'joystick_test':[0,0,0,0,0]
                         }
         self.minOnGui = {
+                        'default':[0,0,0,0,0],
                         'rotateXY': [-100,0,0,0,0],
                         'rotateYZ': [-100,0,0,0,0],
                         'rotateXZ': [-100,0,0,0,0],
@@ -57,6 +65,7 @@ class SubThread(QThread):
                         'joystick_test':[0,0,0,0,0]
                         }
         self.maxOnGui = {
+                        'default':[0,0,0,0,0],
                         'rotateXY': [100,14,0,0,0],
                         'rotateYZ': [100,14,0,0,0],
                         'rotateXZ': [100,14,0,0,0],
@@ -101,10 +110,9 @@ class SubThread(QThread):
             theta = 2 * pi * self.params[0] * t
             fieldX = self.params[1] * cos(theta)
             fieldY = self.params[1] * sin(theta)
-
-            self.field.setZ(0)
-            self.field.setMagnitude(self.params[0])
-
+            self.field.B_Global_Desired[0] = fieldX/1000 # mT -> T
+            self.field.B_Global_Desired[1] = fieldY/1000 # mT -> T
+            self.field.setXYZ(self.field.B_Global_Desired)
             if self.stopped:
                 return
 
@@ -122,9 +130,9 @@ class SubThread(QThread):
             theta = 2 * pi * self.params[0] * t
             fieldY = self.params[1] * cos(theta)
             fieldZ = self.params[1] * sin(theta)
-            self.field.setX(0)
-            self.field.setY(fieldY)
-            self.field.setZ(fieldZ)
+            self.field.B_Global_Desired[1] = fieldY/1000 # mT -> T
+            self.field.B_Global_Desired[2] = fieldZ/1000 # mT -> T
+            self.field.setXYZ(self.field.B_Global_Desired)
             if self.stopped:
                 return
 
@@ -142,9 +150,9 @@ class SubThread(QThread):
             theta = 2 * pi * self.params[0] * t
             fieldX = self.params[1] * cos(theta)
             fieldZ = self.params[1] * sin(theta)
-            self.field.setX(fieldX)
-            self.field.setY(0)
-            self.field.setZ(fieldZ)
+            self.field.B_Global_Desired[0] = fieldX/1000 # mT -> T
+            self.field.B_Global_Desired[2] = fieldZ/1000 # mT -> T
+            self.field.setXYZ(self.field.B_Global_Desired)
             if self.stopped:
                 return
 
@@ -197,52 +205,27 @@ class SubThread(QThread):
 
 
     def joystick_test(self):
-        startTime = time.time()
-        while True:
-            t = time.time() - startTime
-            # joystick = pygame.joystick.Joystick(0)
-
+        # pygame.init()
+        # pygame.joystick.init()
+        # try:
+        #     joystick = pygame.joystick.Joystick(0)
+        #     joystick.init()
+        # except:
+        #     print('Joystick not connected.')
+        #     return
             # define zig-zag direction
-            if joystick.get_button(0):
-                self.mode = 1
-                print()
-            if joystick.get_button(3):
-                self.mode = 0
+        if joystick.get_button(0):
+            print('Button A pressed.')
+        if joystick.get_button(3):
+            print('Button Y pressed.')
 
-            mag = 14
-            xCom = (mag-12.5)*joystick.get_axis(3)
-            yCom = -(mag-12.5)*joystick.get_axis(4)
-            fieldZ = -mag*joystick.get_axis(1)
+            # mag = 14
+            # xCom = (mag-12.5)*joystick.get_axis(3)
+            # yCom = -(mag-12.5)*joystick.get_axis(4)
+            # fieldZ = -mag*joystick.get_axis(1)
 
-            # zig-zag
-            if joystick.get_button(9) and self.mode == 0:
-                f = -3.5-2*(round(joystick.get_axis(5))+1)
-                mu = 16 + 3*joystick.get_axis(2)
-                md = 11 + 3*joystick.get_axis(2)+2*(-joystick.get_axis(1)+1)
-                self.field.setFrequency(abs(f))
-                k = f*(mu+md)
-                n = t//(1/f)
-                fieldZ = - md + k* (t-n/f)
 
-            if joystick.get_button(9) and self.mode == 1:
-                f = -3.5-2*(round(joystick.get_axis(5))+1)
-                mu = 16 + 3*joystick.get_axis(2)
-                md = 11 + 3*joystick.get_axis(2)+2*(-joystick.get_axis(1)+1)
-                self.field.setFrequency(abs(f))
-                k = f*(mu+md)
-                n = t//(1/f)
-                fieldZ = md - k* (t-n/f)
-
-            if fieldZ > 0:
-                fieldX = xCom
-                fieldY = yCom
-            else:
-                fieldX = -xCom
-                fieldY = -yCom
-
-            self.field.setX(fieldX)
-            self.field.setY(fieldY)
-            self.field.setZ(fieldZ)
-
-            if self.stopped:
-                return
+        # if self.stopped:
+        #     pygame.joystick.quit()
+        #     pygame.quit()
+        #     return

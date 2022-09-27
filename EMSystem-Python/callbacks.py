@@ -55,13 +55,10 @@ class GUI(QMainWindow,Ui_MainWindow):
         #self.thrd.stop()
         self.timer.stop()
         self.captionTimer.stop()
-        # vision.closeCamera()
-        # try:
-        #     vision2
-        # except NameError:
-        #     pass
-        # else:
-        #     vision2.closeCamera()
+        if self.vision != None:
+            self.on_chb_camera1(False) # turn off camera 1
+        if self.vision2 != None:
+            self.on_chb_camera2(False) # turn off camera 2
         try:
             joystick
         except NameError:
@@ -173,15 +170,15 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.chb_camera2.toggled.connect(self.on_chb_camera2)
 
         # Subthread Tab
-        # self.cbb_subThread.currentTextChanged.connect(self.on_cbb_subThread)
-        # self.cbb_subThread.currentTextChanged.connect(self.on_chb_changeSubthread)
-        # self.cbb_subThread.currentTextChanged.connect(self.on_chb_switchSubthread)
-        # self.chb_startStopSubthread.toggled.connect(self.on_chb_startStopSubthread)
-        # self.dsb_subThreadParam0.valueChanged.connect(self.thrd.setParam0)
-        # self.dsb_subThreadParam1.valueChanged.connect(self.thrd.setParam1)
-        # self.dsb_subThreadParam2.valueChanged.connect(self.thrd.setParam2)
-        # self.dsb_subThreadParam3.valueChanged.connect(self.thrd.setParam3)
-        # self.dsb_subThreadParam4.valueChanged.connect(self.thrd.setParam4)
+        self.cbb_subThread.currentTextChanged.connect(self.on_cbb_subThread)
+        self.cbb_subThread.currentTextChanged.connect(self.on_chb_changeSubthread)
+        self.cbb_subThread.currentTextChanged.connect(self.on_chb_switchSubthread)
+        self.chb_startStopSubthread.toggled.connect(self.on_chb_startStopSubthread)
+        self.dsb_subThreadParam0.valueChanged.connect(self.thrd.setParam0)
+        self.dsb_subThreadParam1.valueChanged.connect(self.thrd.setParam1)
+        self.dsb_subThreadParam2.valueChanged.connect(self.thrd.setParam2)
+        self.dsb_subThreadParam3.valueChanged.connect(self.thrd.setParam3)
+        self.dsb_subThreadParam4.valueChanged.connect(self.thrd.setParam4)
 
 
     #=====================================================
@@ -246,8 +243,6 @@ class GUI(QMainWindow,Ui_MainWindow):
     @pyqtSlot()
     def finishSubThreadProcess(self):
         print('Subthread is terminated.')
-
-        vision.clearDrawingRouting()
         self.clearField()
         # disable some buttons etc.
 
@@ -263,9 +258,9 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.btn_zoom.clicked.connect(self.realTimePlot.zoom) # connect qt signal to zoom funcion
 
     def updatePlot(self):
-        self.realTimePlot.addDataX(self.dsb_x.value())
-        self.realTimePlot.addDataY(self.dsb_y.value())
-        self.realTimePlot.addDataZ(self.dsb_z.value())
+        self.realTimePlot.addDataX(field.B_Global_Desired[0]*1000)
+        self.realTimePlot.addDataY(field.B_Global_Desired[1]*1000)
+        self.realTimePlot.addDataZ(field.B_Global_Desired[2]*1000)
         self.realTimePlot.addDataA1(field.currentSetpoints[0])
         self.realTimePlot.addDataA2(field.currentSetpoints[1])
         self.realTimePlot.addDataA3(field.currentSetpoints[2])
@@ -374,8 +369,6 @@ class GUI(QMainWindow,Ui_MainWindow):
             self.cbb_subThread.setEnabled(True)
             field.setFrequency(0)
             field.setMagnitude(0)
-            vision.setOrientation(None)
-            vision.setSeparation(None)
             self.thrd.stop()
 
     def on_chb_changeSubthread(self): #use this fcn to stop current subthread

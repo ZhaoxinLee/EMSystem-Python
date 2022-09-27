@@ -14,7 +14,7 @@ class Vision2(object):
             self.mode = "Camera"
 
         cv2.namedWindow(self.windowName(),16)
-        cv2.moveWindow(self.windowName(), 0, 500)
+        cv2.moveWindow(self.windowName(), 0, 510)
         cv2.resizeWindow(self.windowName(), 640,480)
 
         self._isGrayscale = False

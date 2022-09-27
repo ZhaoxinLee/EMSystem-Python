@@ -99,9 +99,9 @@ class S826(object):
         runmode = 0
         for i in range(8):
             errcode = s826dll.S826_DacRead(BOARD, i, slot_rangeCode, slot_setpoint, runmode)
-            if slot_rangeCode[0] != self.dacRangeCode:
-                print("Error: Slot voltage range code does not match initialized range code. Slot range code:",slot_rangeCode[0])
-                return -1
+            # if slot_rangeCode[0] != self.dacRangeCode:
+            #     print("Error: Slot voltage range code does not match initialized range code. Slot range code:",slot_rangeCode[0])
+            #     return -1
             testInput = self.rangeTest(self.dacRangeCode,aoV[i])
             if testInput == -1:
                 print("Error: Output voltage is outside the range.")
