@@ -1146,22 +1146,17 @@
      </item>
      <item>
       <property name="text">
-       <string>oscXYZ</string>
+       <string>osc_x</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>oscXYZ_tophemi</string>
+       <string>osc_z</string>
       </property>
      </item>
      <item>
       <property name="text">
        <string>joystick_test</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>joystick_rolling</string>
       </property>
      </item>
     </widget>
@@ -1265,7 +1260,7 @@
            <double>0.000000000000000</double>
           </property>
           <property name="singleStep">
-           <double>1.000000000000000</double>
+           <double>0.100000000000000</double>
           </property>
          </widget>
         </item>
@@ -1409,7 +1404,7 @@
      <property name="geometry">
       <rect>
        <x>100</x>
-       <y>80</y>
+       <y>70</y>
        <width>75</width>
        <height>24</height>
       </rect>
@@ -1422,7 +1417,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>80</y>
+       <y>70</y>
        <width>75</width>
        <height>24</height>
       </rect>
@@ -1435,7 +1430,7 @@
      <property name="geometry">
       <rect>
        <x>260</x>
-       <y>80</y>
+       <y>70</y>
        <width>75</width>
        <height>24</height>
       </rect>
@@ -1447,7 +1442,7 @@
     <widget class="QPushButton" name="btn_snapshot">
      <property name="geometry">
       <rect>
-       <x>10</x>
+       <x>20</x>
        <y>110</y>
        <width>75</width>
        <height>24</height>
@@ -1460,7 +1455,7 @@
     <widget class="QPushButton" name="btn_startRecording">
      <property name="geometry">
       <rect>
-       <x>100</x>
+       <x>110</x>
        <y>110</y>
        <width>111</width>
        <height>24</height>
@@ -1473,7 +1468,7 @@
     <widget class="QPushButton" name="btn_stopRecording">
      <property name="geometry">
       <rect>
-       <x>220</x>
+       <x>230</x>
        <y>110</y>
        <width>111</width>
        <height>24</height>
@@ -1489,7 +1484,7 @@
        <x>130</x>
        <y>20</y>
        <width>191</width>
-       <height>52</height>
+       <height>41</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_4" rowstretch="0,0">

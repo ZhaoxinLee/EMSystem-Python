@@ -8,7 +8,7 @@ from vision import Vision
 from vision2 import Vision2
 from subThread import SubThread
 from realTimePlot import CustomFigCanvas
-# from XboxController import Xbox
+import pygame
 import time
 import numpy as np
 
@@ -21,7 +21,14 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 s826 = S826()
 monitor = Monitor(s826)
 field = FieldManager(s826)
-# joystick = Xbox()
+
+pygame.init()
+pygame.joystick.init()
+try:
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
+except:
+    pass
 
 #=========================================================
 # a class that handles the signal and callbacks of the GUI
@@ -43,7 +50,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         except NameError:
             self.setupSubThread(field,self.vision,self.vision2)
         else:
-            self.setupSubThread(field,self.vision,self.vision2,joystick=None)
+            self.setupSubThread(field,self.vision,self.vision2,joystick)
         self.connectSignals()
         self.linkWidgets()
         self.setupRealTimePlot() # comment on this line if you don't want a preview window
@@ -90,12 +97,6 @@ class GUI(QMainWindow,Ui_MainWindow):
             pass
         else:
             self.updatePlot()
-        # try:
-        #     joystick
-        # except NameError:
-        #     pass
-        # else:
-        #     joystick.update()
 
     def updateMonitor(self):
         self.measuredData = monitor.setMonitor()
@@ -226,12 +227,12 @@ class GUI(QMainWindow,Ui_MainWindow):
     #=====================================================
     # Thread Example
     #=====================================================
-    def setupSubThread(self,field,vision=None,joystick=None):
+    def setupSubThread(self,field,vision=None,vision2=None,joystick=None):
         if joystick:
-            self.thrd = SubThread(field,vision,joystick)
+            self.thrd = SubThread(field,vision,vision2,joystick)
         else:
-            self.thrd = SubThread(field,vision)#,vision2)
-        self.thrd.statusSignal.connect(self.updateSubThreadStatus)
+            self.thrd = SubThread(field,vision,vision2)
+        # self.thrd.statusSignal.connect(self.updateSubThreadStatus)
         self.thrd.finished.connect(self.finishSubThreadProcess)
 
     # updating GUI according to the status of the subthread
@@ -368,15 +369,11 @@ class GUI(QMainWindow,Ui_MainWindow):
             print('Subthread "{}" starts.'.format(subThreadName))
         else:
             self.cbb_subThread.setEnabled(True)
-            field.setFrequency(0)
-            field.setMagnitude(0)
             self.thrd.stop()
 
-    def on_chb_changeSubthread(self): #use this fcn to stop current subthread
-        subThreadName = self.cbb_subThread.currentText()
+    def on_chb_changeSubthread(self): #use this fcn to stop old subthread
         if self.chb_startStopSubthread.isChecked() == True:
             self.thrd.stop()
-            #print('Subthread "{}" starts.'.format(subThreadName))
 
     def on_chb_switchSubthread(self): #use this fcn to start new subthread
         subThreadName = self.cbb_subThread.currentText()

@@ -1,24 +1,25 @@
 import sys
 import time
-# import pygame
+import pygame
 from math import pi, sin, cos, sqrt, atan2, degrees,radians
 from PyQt5.QtCore import pyqtSignal, QMutexLocker, QMutex, QThread
 from numpy import sign
-
-# pygame.init()
-# pygame.joystick.init()
-# joystick = pygame.joystick.Joystick(0)
-# joystick.init()
 
 def subthreadNotDefined():
     print('Subthread not defined.')
     return
 
+def cosd(val):
+    return cos(radians(val))
+
+def sind(val):
+    return sin(radians(val))
+
 class SubThread(QThread):
     statusSignal = pyqtSignal(str)
 
     def __init__(self,field,vision=None,vision2=None,joystick=None,parent=None):
-        super(SubThread, self).__init__(parent)   # what is this line for Jason>>>?
+        super(SubThread, self).__init__(parent)
         self.stopped = False
         self.mutex = QMutex()
         self.field = field
@@ -42,36 +43,40 @@ class SubThread(QThread):
                         'rotateXY':['Frequency (Hz)','Magniude (mT)','N/A','N/A','N/A'],
                         'rotateYZ': ['Frequency (Hz)','Magniude (mT)','N/A','N/A','N/A'],
                         'rotateXZ': ['Frequency (Hz)','Magniude (mT)','N/A','N/A','N/A'],
-                        'osc_x':['Frequency(Hz)','Magnitude(mT)','HeadingAngle','N/A','N/A'],
-                        'osc_z':['Frequency(Hz)','Magnitude(mT)','HeadingAngle','N/A','N/A'],
-                        'joystick_test':['N/A','N/A','N/A','N/A','N/A']
+                        'oscXYZ':['Frequency(Hz)','Magnitude(mT)','AzimuthalAngle','TiltingAngle','N/A'],
+                        'oscXYZ_tophemi':['Frequency(Hz)','Magnitude(mT)','AzimuthalAngle','TiltingAngle','N/A'],
+                        'joystick_test':['N/A','N/A','N/A','N/A','N/A'],
+                        'joystick_rolling':['N/A','N/A','N/A','N/A','N/A']
                         }
         self.defaultValOnGui = {
                         'default':[0,0,0,0,0],
                         'rotateXY':[1,14,0,0,0],
                         'rotateXZ':[2,2,0,0,0],
                         'rotateYZ':[3,3,0,0,0],
-                        'osc_x':[1,12,0,0,0],
-                        'osc_z':[1,12,0,0,0],
-                        'joystick_test':[0,0,0,0,0]
+                        'oscXYZ':[1,12,0,0,0],
+                        'oscXYZ_tophemi':[1,12,0,0,0],
+                        'joystick_test':[0,0,0,0,0],
+                        'joystick_rolling':[0,0,0,0,0]
                         }
         self.minOnGui = {
                         'default':[0,0,0,0,0],
                         'rotateXY': [-100,0,0,0,0],
                         'rotateYZ': [-100,0,0,0,0],
                         'rotateXZ': [-100,0,0,0,0],
-                        'osc_x':[-20,0,0,0,0],
-                        'osc_z':[-20,0,0,0,0],
-                        'joystick_test':[0,0,0,0,0]
+                        'oscXYZ':[-20,0,0,-90,0],
+                        'oscXYZ_tophemi':[-20,0,0,0,0],
+                        'joystick_test':[0,0,0,0,0],
+                        'joystick_rolling':[0,0,0,0,0]
                         }
         self.maxOnGui = {
                         'default':[0,0,0,0,0],
                         'rotateXY': [100,14,0,0,0],
                         'rotateYZ': [100,14,0,0,0],
                         'rotateXZ': [100,14,0,0,0],
-                        'osc_x':[20,14,360,0,0],
-                        'osc_z':[20,14,360,0,0],
-                        'joystick_test':[0,0,0,0,0]
+                        'oscXYZ':[20,14,360,90,0],
+                        'oscXYZ_tophemi':[20,14,360,90,0],
+                        'joystick_test':[0,0,0,0,0],
+                        'joystick_rolling':[0,0,0,0,0]
                         }
 
     def setup(self,subThreadName):
@@ -112,6 +117,7 @@ class SubThread(QThread):
             fieldY = self.params[1] * sin(theta)
             self.field.B_Global_Desired[0] = fieldX/1000 # mT -> T
             self.field.B_Global_Desired[1] = fieldY/1000 # mT -> T
+            self.field.B_Global_Desired[2] = 0
             self.field.setXYZ(self.field.B_Global_Desired)
             if self.stopped:
                 return
@@ -130,6 +136,7 @@ class SubThread(QThread):
             theta = 2 * pi * self.params[0] * t
             fieldY = self.params[1] * cos(theta)
             fieldZ = self.params[1] * sin(theta)
+            self.field.B_Global_Desired[0] = 0
             self.field.B_Global_Desired[1] = fieldY/1000 # mT -> T
             self.field.B_Global_Desired[2] = fieldZ/1000 # mT -> T
             self.field.setXYZ(self.field.B_Global_Desired)
@@ -151,87 +158,86 @@ class SubThread(QThread):
             fieldX = self.params[1] * cos(theta)
             fieldZ = self.params[1] * sin(theta)
             self.field.B_Global_Desired[0] = fieldX/1000 # mT -> T
+            self.field.B_Global_Desired[1] = 0
             self.field.B_Global_Desired[2] = fieldZ/1000 # mT -> T
             self.field.setXYZ(self.field.B_Global_Desired)
             if self.stopped:
                 return
 
-    def osc_x(self):
-        startTime = time.time()
-        while True:
-            t = time.time() - startTime
-            # f = self.params[0]
-            # m = self.params[1]
-            # heading = self.params[2]
-            # self.field.setFrequency(f)
-            # self.field.setMagnitude(m)
-            # theta = 2 * pi * f * t
-            # # if f > 0:
-            # #     if sin(theta) < 0:
-            # #         theta = theta + pi
-            # # else:
-            # #     if sin(theta) > 0:
-            # #         theta = theta + pi
-            # fieldX = m * cosd(heading) * sin(theta)
-            # fieldY = m * sind(heading) * sin(theta)
-            # self.field.setX(fieldX)
-            # self.field.setY(fieldY)
-            # self.field.setZ(0)
-            if self.stopped:
-                return
-
-    def osc_z(self):
+    def oscXYZ(self): # sinusoidal oscillating field in 3D, you can regard the field vector pointing to the surface of a sphere with varying radius
         startTime = time.time()
         while True:
             t = time.time() - startTime
             f = self.params[0]
-            m = self.params[1]
-            heading = self.params[2]
+            m = self.params[1] # magnitude of the field, equivalent to the radius of the sphere
+            azimuthal = self.params[2] # default is pointing towards +x, increasing along +z axis
+            tilting = self.params[3]# default is pointing towards +x, increasing along -y axis
             self.field.setFrequency(f)
             self.field.setMagnitude(m)
             theta = 2 * pi * f * t
-            # if f > 0:
-            #     if sin(theta) < 0:
-            #         theta = theta + pi
-            # else:
-            #     if sin(theta) > 0:
-            #         theta = theta + pi
-            fieldZ = m * sin(theta)
-            self.field.setX(0)
-            self.field.setY(0)
-            self.field.setZ(fieldZ)
+            fieldX = m * sin(theta) * cosd(tilting) * cosd(azimuthal)
+            fieldY = m * sin(theta) * cosd(tilting) * sind(azimuthal)
+            fieldZ = m * sin(theta) * sind(tilting)
+            self.field.B_Global_Desired[0] = fieldX/1000 # mT -> T
+            self.field.B_Global_Desired[1] = fieldY/1000 # mT -> T
+            self.field.B_Global_Desired[2] = fieldZ/1000 # mT -> T
+            self.field.setXYZ(self.field.B_Global_Desired)
+            if self.stopped:
+                return
+
+    def oscXYZ_tophemi(self): # sinusoidal oscillating field in 3D space above XY plane, you can regard the field vector pointing to the surface of a hemisphere with varying radius
+        startTime = time.time()
+        while True:
+            t = time.time() - startTime
+            f = self.params[0]
+            m = self.params[1] # magnitude of the field, equivalent to the radius of the hemisphere
+            azimuthal = self.params[2] # default is pointing towards +x, increasing along +z axis
+            tilting = self.params[3]# default is pointing towards +x, increasing along -y axis
+            self.field.setFrequency(f)
+            self.field.setMagnitude(m)
+            theta = 2 * pi * f * t
+            fieldX = m * sin(theta) * cosd(tilting) * cosd(azimuthal)
+            fieldY = m * sin(theta) * cosd(tilting) * sind(azimuthal)
+            fieldZ = m * abs(sin(theta)) * sind(tilting)
+            self.field.B_Global_Desired[0] = fieldX/1000 # mT -> T
+            self.field.B_Global_Desired[1] = fieldY/1000 # mT -> T
+            self.field.B_Global_Desired[2] = fieldZ/1000 # mT -> T
+            self.field.setXYZ(self.field.B_Global_Desired)
             if self.stopped:
                 return
 
 
-    def joystick_test(self):
-        # pygame.init()
-        # pygame.joystick.init()
-        # try:
-        #     joystick = pygame.joystick.Joystick(0)
-        #     joystick.init()
-        # except:
-        #     print('Joystick not connected.')
-        #     return
-            # define zig-zag direction
-        if joystick.get_button(0):
-            print('Button A pressed.')
-        if joystick.get_button(3):
-            print('Button Y pressed.')
+    def joystick_test(self): # general control of field x,y,z using joystick
+        startTime = time.time()
+        while True:
+            t = time.time() - startTime
 
-            # mag = 14
-            # xCom = (mag-12.5)*joystick.get_axis(3)
-            # yCom = -(mag-12.5)*joystick.get_axis(4)
-            # fieldZ = -mag*joystick.get_axis(1)
+            if self.joystick != None:
+                maxField = 20 # absolute value of maximum field
+                self.field.B_Global_Desired[0] = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
+                self.field.B_Global_Desired[1] = -self.joystick.get_axis(1)*maxField/1000 # field Y, Left Y-axis
+                self.field.B_Global_Desired[2] = -self.joystick.get_axis(3)*maxField/1000 # field Z, Left Y-axis
+                self.field.setXYZ(self.field.B_Global_Desired)
+            else:
+                return
+
+            if self.stopped:
+                pygame.joystick.quit()
+                pygame.quit()
+                return
+
+    def joystick_rolling(self):
+        startTime = time.time()
+        while True:
+            t = time.time() - startTime
+            maxField = 20 # absolute value of maximum field
+            self.field.B_Global_Desired[0] = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
+            self.field.B_Global_Desired[1] = -self.joystick.get_axis(1)*maxField/1000 # field Y, Left Y-axis
+            self.field.B_Global_Desired[2] = -self.joystick.get_axis(3)*maxField/1000 # field Z, Left Y-axis
+            self.field.setXYZ(self.field.B_Global_Desired)
 
 
-        # if self.stopped:
-        #     pygame.joystick.quit()
-        #     pygame.quit()
-        #     return
-
-    def cosd(val):
-        return cos(radians(val))
-
-    def sind(val):
-        return sin(radians(val))
+            if self.stopped:
+                pygame.joystick.quit()
+                pygame.quit()
+                return
