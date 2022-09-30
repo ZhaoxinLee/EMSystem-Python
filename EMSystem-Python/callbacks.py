@@ -116,7 +116,7 @@ class GUI(QMainWindow,Ui_MainWindow):
         #     msgBox.setWindowTitle("Warning!")
         #     msgBox.setStandardButtons(QMessageBox.Ok)
         #     msgBox.exec()
-        #     self.monitorTimer.stop()
+        #     self.captionTimer.stop()
 
     def on_chb_camera1(self,state):
         self.vision = Vision(field)
@@ -263,6 +263,8 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.realTimePlot.addDataX(field.B_Global_Desired[0]*1000)
         self.realTimePlot.addDataY(field.B_Global_Desired[1]*1000)
         self.realTimePlot.addDataZ(field.B_Global_Desired[2]*1000)
+
+        # below are calculated current results based on set desired field
         self.realTimePlot.addDataA1(field.currentSetpoints[0])
         self.realTimePlot.addDataA2(field.currentSetpoints[1])
         self.realTimePlot.addDataA3(field.currentSetpoints[2])
@@ -271,6 +273,16 @@ class GUI(QMainWindow,Ui_MainWindow):
         self.realTimePlot.addDataA6(field.currentSetpoints[5])
         self.realTimePlot.addDataA7(field.currentSetpoints[6])
         self.realTimePlot.addDataA8(field.currentSetpoints[7])
+
+        # below are measured currents read from s826
+        # self.realTimePlot.addDataA1(self.measuredData[0])
+        # self.realTimePlot.addDataA2(self.measuredData[1])
+        # self.realTimePlot.addDataA3(self.measuredData[2])
+        # self.realTimePlot.addDataA4(self.measuredData[3])
+        # self.realTimePlot.addDataA5(self.measuredData[4])
+        # self.realTimePlot.addDataA6(self.measuredData[5])
+        # self.realTimePlot.addDataA7(self.measuredData[6])
+        # self.realTimePlot.addDataA8(self.measuredData[7])
 
     #=====================================================
     # Callback Functions

@@ -1,9 +1,9 @@
 import sys
 import time
-import pygame
 from math import pi, sin, cos, sqrt, atan2, degrees,radians
 from PyQt5.QtCore import pyqtSignal, QMutexLocker, QMutex, QThread
 from numpy import sign
+import pygame
 
 def subthreadNotDefined():
     print('Subthread not defined.')
@@ -231,9 +231,28 @@ class SubThread(QThread):
         while True:
             t = time.time() - startTime
             maxField = 20 # absolute value of maximum field
-            self.field.B_Global_Desired[0] = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
-            self.field.B_Global_Desired[1] = -self.joystick.get_axis(1)*maxField/1000 # field Y, Left Y-axis
-            self.field.B_Global_Desired[2] = -self.joystick.get_axis(3)*maxField/1000 # field Z, Left Y-axis
+            Bx = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
+            By = -self.joystick.get_axis(1)*maxField/1000 # field Y, Left Y-axis
+            Mag = 1 # rolling magnitude, L2
+            XRoll = self.joystick.get_axis(2) # Rolling along x axis, Right X-axis
+            YRoll = -self.joystick.get_axis(3) # Rolling along y axis, Right Y-axis
+            freq = round(self.joystick.get_axis(5)+2) # rolling frequency, R2
+
+            # general control
+            fieldX = Bx # field X, Left X-axis
+            fieldY = By # field Y, Left Y-axis
+            fieldZ = 0
+
+            # rolling control
+            theta = 2 * pi * freq * t
+            inplaneMag = sqrt(XRoll**2+YRoll**2) # in-plane component of field magnitude
+            if inplaneMag >= 0.2:
+                fieldX = Mag * cos(theta) * XRoll/inplaneMag /1000
+                fieldY = Mag * cos(theta) * YRoll/inplaneMag /1000
+                fieldZ = Mag * sin(theta) /1000
+            self.field.B_Global_Desired[0] = fieldX
+            self.field.B_Global_Desired[1] = fieldY
+            self.field.B_Global_Desired[2] = fieldZ
             self.field.setXYZ(self.field.B_Global_Desired)
 
 
