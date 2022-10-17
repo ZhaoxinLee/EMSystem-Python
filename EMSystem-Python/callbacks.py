@@ -24,11 +24,8 @@ field = FieldManager(s826)
 
 pygame.init()
 pygame.joystick.init()
-try:
-    joystick = pygame.joystick.Joystick(0)
-    joystick.init()
-except:
-    pass
+joystick = pygame.joystick.Joystick(0)
+joystick.init()
 
 #=========================================================
 # a class that handles the signal and callbacks of the GUI

@@ -70,9 +70,9 @@ class SubThread(QThread):
                         }
         self.maxOnGui = {
                         'default':[0,0,0,0,0],
-                        'rotateXY': [100,14,0,0,0],
-                        'rotateYZ': [100,14,0,0,0],
-                        'rotateXZ': [100,14,0,0,0],
+                        'rotateXY': [100,25,0,0,0],
+                        'rotateYZ': [100,25,0,0,0],
+                        'rotateXZ': [100,25,0,0,0],
                         'oscXYZ':[20,14,360,90,0],
                         'oscXYZ_tophemi':[20,14,360,90,0],
                         'joystick_test':[0,0,0,0,0],
@@ -222,34 +222,36 @@ class SubThread(QThread):
                 return
 
             if self.stopped:
-                pygame.joystick.quit()
-                pygame.quit()
                 return
 
     def joystick_rolling(self):
         startTime = time.time()
         while True:
             t = time.time() - startTime
-            maxField = 20 # absolute value of maximum field
-            Bx = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
-            By = -self.joystick.get_axis(1)*maxField/1000 # field Y, Left Y-axis
-            Mag = 1 # rolling magnitude, L2
+
             XRoll = self.joystick.get_axis(2) # Rolling along x axis, Right X-axis
             YRoll = -self.joystick.get_axis(3) # Rolling along y axis, Right Y-axis
-            freq = round(self.joystick.get_axis(5)+2) # rolling frequency, R2
-
-            # general control
-            fieldX = Bx # field X, Left X-axis
-            fieldY = By # field Y, Left Y-axis
-            fieldZ = 0
+            inplaneMag = sqrt(XRoll**2+YRoll**2) # in-plane component of field magnitude
+            freq = 1*round(self.joystick.get_axis(5)+2) # rolling frequency, R2
+            Mag = 3*round(-self.joystick.get_axis(1)+2)  # rolling magnitude, L2
 
             # rolling control
             theta = 2 * pi * freq * t
-            inplaneMag = sqrt(XRoll**2+YRoll**2) # in-plane component of field magnitude
             if inplaneMag >= 0.2:
-                fieldX = Mag * cos(theta) * XRoll/inplaneMag /1000
-                fieldY = Mag * cos(theta) * YRoll/inplaneMag /1000
+                fieldX = -Mag * cos(theta) * XRoll/inplaneMag /1000
+                fieldY = -Mag * cos(theta) * YRoll/inplaneMag /1000
                 fieldZ = Mag * sin(theta) /1000
+            elif sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.1: # general control
+                maxField = 25 # absolute value of maximum field
+                Bx = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
+                By = -self.joystick.get_axis(1)*maxField/1000 # field Y, Left Y-axis
+                fieldX = Bx # field X, Left X-axis
+                fieldY = By # field Y, Left Y-axis
+                fieldZ = 0
+            else:
+                fieldX = 0
+                fieldY = 0
+                fieldZ = 0
             self.field.B_Global_Desired[0] = fieldX
             self.field.B_Global_Desired[1] = fieldY
             self.field.B_Global_Desired[2] = fieldZ
@@ -257,6 +259,4 @@ class SubThread(QThread):
 
 
             if self.stopped:
-                pygame.joystick.quit()
-                pygame.quit()
                 return
