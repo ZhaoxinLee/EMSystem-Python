@@ -1,6 +1,6 @@
-# Instruction for running the program
+# Instructions for Running the Program
 
-To run the program
+To run the program,
 1. Open the terminal and run the following command to jump to the folder "EMSystem-Python":
 
 `cd C:\Users\MicroRoboticsLab\Documents\EMSystem-Python`
