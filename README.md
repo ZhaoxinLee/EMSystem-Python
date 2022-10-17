@@ -1,4 +1,4 @@
-# Instructions for Running the Program
+# Instructions
 
 To run the program,
 1. Open the terminal and run the following command to jump to the folder "EMSystem-Python":
