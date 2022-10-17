@@ -7,4 +7,4 @@ cd C:\Users\MicroRoboticsLab\Documents\EMSystem-Python
 
 2. Next, run the following command to run the program:
 
-python main.py
+`python main.py`
