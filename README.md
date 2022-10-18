@@ -9,9 +9,10 @@
 
    `python main.py`
    
-If you encounter the error regarding joystick below, 
+If you encounter the error regarding joystick below
 ![This is an image](/EMSystem-Python/snapshot/Error1.png)
-you can (1) plug the joystick in, or (2) comment line 27-30 in callbacks.py
+
+You can (1) plug the joystick in, or (2) comment line 27-30 in callbacks.py
 ![This is an image](/EMSystem-Python/snapshot/Code1.png)
 
 ## 
