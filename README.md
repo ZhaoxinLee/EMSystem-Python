@@ -10,7 +10,7 @@
    `python main.py`
    
 If you encounter the error below, you can (1) plug the joystick in, (2) comment line 27-30 in callbacks.py
-![This is an image](/EMSystem-Python/snapshot/GUI.png)
+![This is an image](/EMSystem-Python/snapshot/Error1.png)
 
 The picture below shows basic modules of GUI and corresponding python files which you can modify to meet your testing requirements:
 
