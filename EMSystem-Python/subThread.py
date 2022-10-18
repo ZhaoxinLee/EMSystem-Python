@@ -29,7 +29,7 @@ class SubThread(QThread):
         self._subthreadName = ''
         self.params = [0,0,0,0,0]
         self.counter = 0
-        self.state = None
+        self.js_rolling_state = 0
         self.prex0 = None
         self.prey0 = None
         self.prex1 = None
@@ -229,29 +229,44 @@ class SubThread(QThread):
         while True:
             t = time.time() - startTime
 
-            XRoll = self.joystick.get_axis(2) # Rolling along x axis, Right X-axis
-            YRoll = -self.joystick.get_axis(3) # Rolling along y axis, Right Y-axis
-            inplaneMag = sqrt(XRoll**2+YRoll**2) # in-plane component of field magnitude
-            freq = 1*round(self.joystick.get_axis(5)+2) # rolling frequency, R2
-            Mag = 3*round(-self.joystick.get_axis(1)+2)  # rolling magnitude, L2
+            if self.joystick.get_button(1):
+                self.js_rolling_state = 1 # press button B for rolling control
+            elif self.joystick.get_button(0):
+                self.js_rolling_state = 0 # press button A for opening and closing control
+
+            # opening and closing control
+            if self.js_rolling_state == 0:
+                if sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2: # general control
+                    maxField = 25 # absolute value of maximum field
+                    Bx = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
+                    By = -self.joystick.get_axis(1)*maxField/1000 # field Y, Left Y-axis
+                    if self.joystick.get_axis(5) > -0.5:
+                        Bz = 10*(self.joystick.get_axis(5)+1)/1000
+                    elif self.joystick.get_axis(4) > -0.5:
+                        Bz = -10*(self.joystick.get_axis(4)+1)/1000
+                    else:
+                        Bz = 0
+                    fieldX = Bx # field X, Left X-axis
+                    fieldY = By # field Y, Left Y-axis
+                    fieldZ = Bz
+                else:
+                    fieldX = 0
+                    fieldY = 0
+                    fieldZ = 0
 
             # rolling control
-            theta = 2 * pi * freq * t
-            if inplaneMag >= 0.2:
-                fieldX = -Mag * cos(theta) * XRoll/inplaneMag /1000
-                fieldY = -Mag * cos(theta) * YRoll/inplaneMag /1000
-                fieldZ = Mag * sin(theta) /1000
-            elif sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.1: # general control
-                maxField = 25 # absolute value of maximum field
-                Bx = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
-                By = -self.joystick.get_axis(1)*maxField/1000 # field Y, Left Y-axis
-                fieldX = Bx # field X, Left X-axis
-                fieldY = By # field Y, Left Y-axis
-                fieldZ = 0
-            else:
-                fieldX = 0
-                fieldY = 0
-                fieldZ = 0
+            if self.js_rolling_state == 1:
+                XRoll = self.joystick.get_axis(2) # Rolling along x axis, Right X-axis
+                YRoll = -self.joystick.get_axis(3) # Rolling along y axis, Right Y-axis
+                inplaneMag = sqrt(XRoll**2+YRoll**2) # in-plane component of field magnitude
+                freq = 1*round(self.joystick.get_axis(5)+2) # rolling frequency, R2
+                Mag = 3*round(-self.joystick.get_axis(1)+2)  # rolling magnitude, L2
+                theta = 2 * pi * freq * t
+                if inplaneMag >= 0.2:
+                    fieldX = -Mag * cos(theta) * XRoll/inplaneMag /1000
+                    fieldY = -Mag * cos(theta) * YRoll/inplaneMag /1000
+                    fieldZ = Mag * sin(theta) /1000
+\
             self.field.B_Global_Desired[0] = fieldX
             self.field.B_Global_Desired[1] = fieldY
             self.field.B_Global_Desired[2] = fieldZ
@@ -260,3 +275,26 @@ class SubThread(QThread):
 
             if self.stopped:
                 return
+
+# joystick button and axis definition, always commented
+#          KEY = {
+#         'A': 0,
+#         'B': 1,
+#         'X': 2,
+#         'Y': 3,
+#         'LTOP': 4,
+#         'RTOP': 5,
+#         'BACK': 6,
+#         'START': 7,
+#         'HOME': 8,
+#         'TOP_LEFT': 9,
+#         'BOT_RIGHT': 10,
+#         }
+#         AXIS = {
+#             'L_X': 0,
+#             'L_Y': 1,
+#             'L_BACK': 2,
+#             'R_X': 3,
+#             'R_Y': 4,
+#             'R_BACK': 5
+#         }

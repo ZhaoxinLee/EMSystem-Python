@@ -22,10 +22,13 @@ s826 = S826()
 monitor = Monitor(s826)
 field = FieldManager(s826)
 
+#=========================================================
+# Comment this section if not using joystick
 pygame.init()
 pygame.joystick.init()
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
+#=========================================================
 
 #=========================================================
 # a class that handles the signal and callbacks of the GUI
