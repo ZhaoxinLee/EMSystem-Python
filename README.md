@@ -22,6 +22,6 @@ The picture below shows basic modules of GUI and corresponding python files whic
 
 ![This is an image](/EMSystem-Python/snapshot/GUI.png)
 
-You can turn on and turn off the cameras using the checkboxes of camera1 and camera2 in the red box below
+You can turn on and turn off the cameras using the checkboxes of camera1 and camera2 in the red box below:
 
 ![This is an image](/EMSystem-Python/snapshot/GUI_2.png)
