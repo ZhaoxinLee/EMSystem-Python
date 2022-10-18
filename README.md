@@ -15,10 +15,10 @@ If you encounter the error regarding joystick below
 You can (1) plug the joystick in, or (2) comment line 27-30 in callbacks.py
 ![This is an image](/EMSystem-Python/snapshot/Code1.png)
 
-## 
+## Customize your code
 The picture below shows basic modules of GUI and corresponding python files which you can modify to meet your testing requirements:
 
 ![This is an image](/EMSystem-Python/snapshot/GUI.png)
 
-
-![This is an image](/EMSystem-Python/snapshot/GUI2.png)
+By checking the checkboxes of camera1 and camera2 
+![This is an image](/EMSystem-Python/snapshot/GUI_2.png)
