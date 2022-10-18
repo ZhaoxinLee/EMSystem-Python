@@ -9,4 +9,4 @@ To run the program,
 
 `python main.py`
 
-!(/assets/images/GUI.png)
+![This is an image](https://myoctocat.com/assets/images/base-octocat.svg)
