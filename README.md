@@ -9,6 +9,6 @@ To run the program,
 
    `python main.py`
 
-The picture below shows basic modules of GUI and corresponding python files where you can modify to meet your testing requirements:
+The picture below shows basic modules of GUI and corresponding python files which you can modify to meet your testing requirements:
 
 ![This is an image](/GUI.png)
