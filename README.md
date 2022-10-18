@@ -11,4 +11,4 @@ To run the program,
 
 The picture below shows basic modules of GUI and corresponding python files which you can modify to meet your testing requirements:
 
-![This is an image](/GUI.png)
+![This is an image](/EMSystem-Python/snapshot/GUI.png)
