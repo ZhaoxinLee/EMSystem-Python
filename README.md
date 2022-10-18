@@ -8,3 +8,5 @@ To run the program,
 2. Next, run the following command to run the program:
 
 `python main.py`
+
+!(/assets/images/GUI.png)
