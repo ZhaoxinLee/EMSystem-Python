@@ -10,9 +10,11 @@
    `python main.py`
    
 If you encounter the error regarding joystick below
+
 ![This is an image](/EMSystem-Python/snapshot/Error1.png)
 
 You can (1) plug the joystick in, or (2) comment line 27-30 in callbacks.py
+
 ![This is an image](/EMSystem-Python/snapshot/Code1.png)
 
 ## Customize your code
@@ -21,4 +23,5 @@ The picture below shows basic modules of GUI and corresponding python files whic
 ![This is an image](/EMSystem-Python/snapshot/GUI.png)
 
 You can turn on and turn off the cameras using the checkboxes of camera1 and camera2 in the red block below
+
 ![This is an image](/EMSystem-Python/snapshot/GUI_2.png)
