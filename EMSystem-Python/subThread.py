@@ -45,18 +45,22 @@ class SubThread(QThread):
                         'rotateXZ': ['Frequency (Hz)','Magniude (mT)','N/A','N/A','N/A'],
                         'oscXYZ':['Frequency(Hz)','Magnitude(mT)','AzimuthalAngle','TiltingAngle','N/A'],
                         'oscXYZ_tophemi':['Frequency(Hz)','Magnitude(mT)','AzimuthalAngle','TiltingAngle','N/A'],
-                        'joystick_test':['N/A','N/A','N/A','N/A','N/A'],
-                        'joystick_rolling':['N/A','N/A','N/A','N/A','N/A']
+                        'joystick_uniform':['N/A','N/A','N/A','N/A','N/A'],
+                        'joystick_rolling':['N/A','N/A','N/A','N/A','N/A'],
+                        'joystick_rotating':['N/A','N/A','N/A','N/A','N/A'],
+                        'joystick_crawling':['N/A','N/A','N/A','N/A','N/A']
                         }
         self.defaultValOnGui = {
                         'default':[0,0,0,0,0],
                         'rotateXY':[1,14,0,0,0],
                         'rotateXZ':[2,2,0,0,0],
-                        'rotateYZ':[3,3,0,0,0],
+                        'rotateYZ':[10,16,0,0,0],
                         'oscXYZ':[1,12,0,0,0],
                         'oscXYZ_tophemi':[1,12,0,0,0],
-                        'joystick_test':[0,0,0,0,0],
-                        'joystick_rolling':[0,0,0,0,0]
+                        'joystick_uniform':[0,0,0,0,0],
+                        'joystick_rolling':[0,0,0,0,0],
+                        'joystick_rotating':[0,0,0,0,0],
+                        'joystick_crawling':[0,0,0,0,0]
                         }
         self.minOnGui = {
                         'default':[0,0,0,0,0],
@@ -65,18 +69,22 @@ class SubThread(QThread):
                         'rotateXZ': [-100,0,0,0,0],
                         'oscXYZ':[-20,0,0,-90,0],
                         'oscXYZ_tophemi':[-20,0,0,0,0],
-                        'joystick_test':[0,0,0,0,0],
-                        'joystick_rolling':[0,0,0,0,0]
+                        'joystick_uniform':[0,0,0,0,0],
+                        'joystick_rolling':[0,0,0,0,0],
+                        'joystick_rotating':[0,0,0,0,0],
+                        'joystick_crawling':[0,0,0,0,0]
                         }
         self.maxOnGui = {
                         'default':[0,0,0,0,0],
                         'rotateXY': [100,25,0,0,0],
                         'rotateYZ': [100,25,0,0,0],
                         'rotateXZ': [100,25,0,0,0],
-                        'oscXYZ':[20,14,360,90,0],
+                        'oscXYZ':[20,25,360,90,0],
                         'oscXYZ_tophemi':[20,14,360,90,0],
-                        'joystick_test':[0,0,0,0,0],
-                        'joystick_rolling':[0,0,0,0,0]
+                        'joystick_uniform':[0,0,0,0,0],
+                        'joystick_rolling':[0,0,0,0,0],
+                        'joystick_rotating':[0,0,0,0,0],
+                        'joystick_crawling':[0,0,0,0,0]
                         }
 
     def setup(self,subThreadName):
@@ -207,7 +215,7 @@ class SubThread(QThread):
                 return
 
 
-    def joystick_test(self): # general control of field x,y,z using joystick
+    def joystick_uniform(self): # general control of field x,y,z using joystick
         startTime = time.time()
         while True:
             t = time.time() - startTime
@@ -266,7 +274,7 @@ class SubThread(QThread):
                     fieldX = -Mag * cos(theta) * XRoll/inplaneMag /1000
                     fieldY = -Mag * cos(theta) * YRoll/inplaneMag /1000
                     fieldZ = Mag * sin(theta) /1000
-\
+
             self.field.B_Global_Desired[0] = fieldX
             self.field.B_Global_Desired[1] = fieldY
             self.field.B_Global_Desired[2] = fieldZ
@@ -276,6 +284,63 @@ class SubThread(QThread):
             if self.stopped:
                 return
 
+    def joystick_rotating(self): # in-plane rotation with user-defined azimuthal angle
+        startTime = time.time()
+        while True:
+            t = time.time() - startTime
+            XRoll = self.joystick.get_axis(2) # Rolling along x axis, Right X-axis
+            YRoll = -self.joystick.get_axis(3) # Rolling along y axis, Right Y-axis
+            inplaneMag = sqrt(XRoll**2+YRoll**2) # in-plane component of field magnitude
+            freq = 12
+            Mag = 16
+            theta = 2 * pi * freq * t
+            if inplaneMag >= 0.2:
+                fieldY = Mag * cos(theta) * XRoll/inplaneMag /1000 # this direction is for helical robot actuation, which is perpendicular to the rotational plane, see commented lines below for rotational plane
+                fieldX = -Mag * cos(theta) * YRoll/inplaneMag /1000
+                # fieldX = -Mag * cos(theta) * XRoll/inplaneMag /1000 # this is within the rotational plane
+                # fieldY = -Mag * cos(theta) * YRoll/inplaneMag /1000
+                fieldZ = Mag * sin(theta) /1000
+            else:
+                fieldX = 0
+                fieldY = 0
+                fieldZ = 0
+
+            self.field.B_Global_Desired[0] = fieldX
+            self.field.B_Global_Desired[1] = fieldY
+            self.field.B_Global_Desired[2] = fieldZ
+            self.field.setXYZ(self.field.B_Global_Desired)
+            if self.stopped:
+                return
+
+    def joystick_crawling(self): # square signal for walking robot actuation
+        startTime = time.time()
+        while True:
+            t = time.time() - startTime
+            X = self.joystick.get_axis(2)
+            Y = -self.joystick.get_axis(3)
+            Z = -self.joystick.get_axis(1)
+            inplaneMag = sqrt(X**2+Y**2) # in-plane component of field magnitude
+            MagY = 25*Y
+            MagZ = Z*15
+            if inplaneMag >= 0.2:
+                # if X >= 0:
+                #     fieldX = Mag /1000
+                # else:
+                #     fieldX = -Mag /1000
+                fieldX-0
+                fieldY = MagY /1000
+                fieldZ = MagZ /1000
+            else:
+                fieldX = 0
+                fieldY = 0
+                fieldZ = 0
+
+            self.field.B_Global_Desired[0] = fieldX
+            self.field.B_Global_Desired[1] = fieldY
+            self.field.B_Global_Desired[2] = fieldZ
+            self.field.setXYZ(self.field.B_Global_Desired)
+            if self.stopped:
+                return
 # joystick button and axis definition, always commented
 #          KEY = {
 #         'A': 0,

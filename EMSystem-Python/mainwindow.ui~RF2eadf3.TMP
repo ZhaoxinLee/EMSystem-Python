@@ -390,7 +390,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -500,7 +499,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -714,7 +712,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -837,7 +834,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
@@ -960,7 +956,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -979,7 +974,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -998,7 +992,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -1017,7 +1010,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -1036,7 +1028,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -1055,7 +1046,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -1074,7 +1064,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -1093,7 +1082,6 @@
      </property>
      <property name="font">
       <font>
-       <weight>50</weight>
        <bold>false</bold>
       </font>
      </property>
@@ -1168,22 +1156,12 @@
      </item>
      <item>
       <property name="text">
-       <string>joystick_uniform</string>
+       <string>joystick_test</string>
       </property>
      </item>
      <item>
       <property name="text">
        <string>joystick_rolling</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>joystick_rotating</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>joystick_crawling</string>
       </property>
      </item>
     </widget>
@@ -1559,7 +1537,7 @@
      <x>0</x>
      <y>0</y>
      <width>720</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
