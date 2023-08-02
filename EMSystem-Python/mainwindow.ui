@@ -1186,6 +1186,21 @@
        <string>joystick_crawling</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>wrist_gripper</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>wrist_gripper_vertical</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>cutting</string>
+      </property>
+     </item>
     </widget>
     <widget class="QWidget" name="layoutWidget">
      <property name="geometry">

@@ -1,6 +1,6 @@
 import sys
 import time
-from math import pi, sin, cos, sqrt, atan2, degrees,radians
+from math import pi, sin, cos, sqrt, atan2, degrees, radians, asin, acos
 from PyQt5.QtCore import pyqtSignal, QMutexLocker, QMutex, QThread
 from numpy import sign
 import pygame
@@ -48,7 +48,10 @@ class SubThread(QThread):
                         'joystick_uniform':['N/A','N/A','N/A','N/A','N/A'],
                         'joystick_rolling':['N/A','N/A','N/A','N/A','N/A'],
                         'joystick_rotating':['N/A','N/A','N/A','N/A','N/A'],
-                        'joystick_crawling':['N/A','N/A','N/A','N/A','N/A']
+                        'joystick_crawling':['N/A','N/A','N/A','N/A','N/A'],
+                        'wrist_gripper':['tilting','N/A','N/A','N/A','N/A'],
+                        'wrist_gripper_vertical':['tilting','N/A','N/A','N/A','N/A'],
+                        'cutting':['N/A','N/A','N/A','N/A','N/A']
                         }
         self.defaultValOnGui = {
                         'default':[0,0,0,0,0],
@@ -56,11 +59,14 @@ class SubThread(QThread):
                         'rotateXZ':[2,2,0,0,0],
                         'rotateYZ':[10,16,0,0,0],
                         'oscXYZ':[1,12,0,0,0],
-                        'oscXYZ_tophemi':[1,12,0,0,0],
+                        'oscXYZ_tophemi':[1,20,90,0,0],
                         'joystick_uniform':[0,0,0,0,0],
                         'joystick_rolling':[0,0,0,0,0],
                         'joystick_rotating':[0,0,0,0,0],
-                        'joystick_crawling':[0,0,0,0,0]
+                        'joystick_crawling':[0,0,0,0,0],
+                        'wrist_gripper':[0,0,0,0,0],
+                        'wrist_gripper_vertical':[0,0,0,0,0],
+                        'cutting':[0,0,0,0,0]
                         }
         self.minOnGui = {
                         'default':[0,0,0,0,0],
@@ -72,7 +78,10 @@ class SubThread(QThread):
                         'joystick_uniform':[0,0,0,0,0],
                         'joystick_rolling':[0,0,0,0,0],
                         'joystick_rotating':[0,0,0,0,0],
-                        'joystick_crawling':[0,0,0,0,0]
+                        'joystick_crawling':[0,0,0,0,0],
+                        'wrist_gripper':[0,0,0,0,0],
+                        'wrist_gripper_vertical':[-90,0,0,0,0],
+                        'cutting':[0,0,0,0,0]
                         }
         self.maxOnGui = {
                         'default':[0,0,0,0,0],
@@ -80,11 +89,14 @@ class SubThread(QThread):
                         'rotateYZ': [100,25,0,0,0],
                         'rotateXZ': [100,25,0,0,0],
                         'oscXYZ':[20,25,360,90,0],
-                        'oscXYZ_tophemi':[20,14,360,90,0],
+                        'oscXYZ_tophemi':[20,25,360,90,0],
                         'joystick_uniform':[0,0,0,0,0],
                         'joystick_rolling':[0,0,0,0,0],
                         'joystick_rotating':[0,0,0,0,0],
-                        'joystick_crawling':[0,0,0,0,0]
+                        'joystick_crawling':[0,0,0,0,0],
+                        'wrist_gripper':[90,0,0,0,0],
+                        'wrist_gripper_vertical':[90,0,0,0,0],
+                        'cutting':[0,0,0,0,0]
                         }
 
     def setup(self,subThreadName):
@@ -200,13 +212,20 @@ class SubThread(QThread):
             f = self.params[0]
             m = self.params[1] # magnitude of the field, equivalent to the radius of the hemisphere
             azimuthal = self.params[2] # default is pointing towards +x, increasing along +z axis
-            tilting = self.params[3]# default is pointing towards +x, increasing along -y axis
+            n = self.params[3]# default is pointing towards +x, increasing along -y axis
             self.field.setFrequency(f)
             self.field.setMagnitude(m)
             theta = 2 * pi * f * t
-            fieldX = m * sin(theta) * cosd(tilting) * cosd(azimuthal)
-            fieldY = m * sin(theta) * cosd(tilting) * sind(azimuthal)
-            fieldZ = m * abs(sin(theta)) * sind(tilting)
+            fieldX = m * sin(theta) * cosd(azimuthal)
+            fieldY = m * sin(theta) * sind(azimuthal)
+
+            if fieldY < -15:
+                fieldZ = -n * abs(sin(theta))
+            elif fieldY > 15:
+                fieldZ = -(10-n) * abs(sin(theta))
+            else:
+                fieldZ = 0
+
             self.field.B_Global_Desired[0] = fieldX/1000 # mT -> T
             self.field.B_Global_Desired[1] = fieldY/1000 # mT -> T
             self.field.B_Global_Desired[2] = fieldZ/1000 # mT -> T
@@ -222,9 +241,20 @@ class SubThread(QThread):
 
             if self.joystick != None:
                 maxField = 20 # absolute value of maximum field
-                self.field.B_Global_Desired[0] = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
-                self.field.B_Global_Desired[1] = -self.joystick.get_axis(1)*maxField/1000 # field Y, Left Y-axis
-                self.field.B_Global_Desired[2] = -self.joystick.get_axis(3)*maxField/1000 # field Z, Left Y-axis
+                if abs(self.joystick.get_axis(0))>=0.2:
+                    self.field.B_Global_Desired[0] = self.joystick.get_axis(0)*maxField/1000 # field X, Left X-axis
+                else:
+                    self.field.B_Global_Desired[0] = 0
+                if abs(self.joystick.get_axis(3))>=0.2:
+                    self.field.B_Global_Desired[1] = -self.joystick.get_axis(3)*maxField/1000 # field Y, Right Y-axis
+                else:
+                    self.field.B_Global_Desired[1] = 0
+                if self.joystick.get_axis(4)>0:
+                    self.field.B_Global_Desired[2] = -(self.joystick.get_axis(4))*maxField/1000 # negative field Z, Left back
+                elif self.joystick.get_axis(5)>0:
+                    self.field.B_Global_Desired[2] = (self.joystick.get_axis(5))*maxField/1000 # positive field Z, Right back
+                else:
+                    self.field.B_Global_Desired[2] = 0
                 self.field.setXYZ(self.field.B_Global_Desired)
             else:
                 return
@@ -268,12 +298,17 @@ class SubThread(QThread):
                 YRoll = -self.joystick.get_axis(3) # Rolling along y axis, Right Y-axis
                 inplaneMag = sqrt(XRoll**2+YRoll**2) # in-plane component of field magnitude
                 freq = 1*round(self.joystick.get_axis(5)+2) # rolling frequency, R2
-                Mag = 3*round(-self.joystick.get_axis(1)+2)  # rolling magnitude, L2
+                Mag = 8*round(-self.joystick.get_axis(1)+2)#3*round(-self.joystick.get_axis(1)+2)  # rolling magnitude, L2
                 theta = 2 * pi * freq * t
-                if inplaneMag >= 0.2:
+                if inplaneMag >= 0.3:
                     fieldX = -Mag * cos(theta) * XRoll/inplaneMag /1000
                     fieldY = -Mag * cos(theta) * YRoll/inplaneMag /1000
                     fieldZ = Mag * sin(theta) /1000
+                else:
+                    fieldX = 0
+                    fieldY = 0
+                    fieldZ = 0
+
 
             self.field.B_Global_Desired[0] = fieldX
             self.field.B_Global_Desired[1] = fieldY
@@ -322,23 +357,216 @@ class SubThread(QThread):
             inplaneMag = sqrt(X**2+Y**2) # in-plane component of field magnitude
             MagY = 25*Y
             MagZ = Z*15
-            if inplaneMag >= 0.2:
+            fieldZ = MagZ /1000
+            if inplaneMag >= 0.4:
                 # if X >= 0:
                 #     fieldX = Mag /1000
                 # else:
                 #     fieldX = -Mag /1000
                 fieldX-0
                 fieldY = MagY /1000
-                fieldZ = MagZ /1000
             else:
                 fieldX = 0
                 fieldY = 0
-                fieldZ = 0
 
             self.field.B_Global_Desired[0] = fieldX
             self.field.B_Global_Desired[1] = fieldY
             self.field.B_Global_Desired[2] = fieldZ
             self.field.setXYZ(self.field.B_Global_Desired)
+            if self.stopped:
+                return
+
+    def wrist_gripper(self):
+        startTime = time.time()
+        while True:
+            t = time.time() - startTime
+            if self.params[0] == 0: # horizontal plane
+                if sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2:
+                    if self.joystick.get_axis(1)<=0:
+                        maxField = 10 # absolute value of maximum field
+                        By = self.joystick.get_axis(0)*maxField/1000 # field Y, Left X-axis
+                        Bx = self.joystick.get_axis(1)*maxField/1000 # field X, Left Y-axis
+                        Bz = 0
+                    else:
+                        if self.joystick.get_axis(0)>0:
+                            Bx = 0
+                            By = sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*maxField/1000
+                            Bz = 0
+                        else:
+                            Bx = 0
+                            By = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*maxField/1000
+                            Bz = 0
+                    if abs(self.joystick.get_axis(3)) >= 0.2:
+                        Bz = self.joystick.get_axis(3)*maxField/1000
+                    fieldX = Bx
+                    fieldY = By
+                    fieldZ = Bz
+                elif abs(self.joystick.get_axis(3)) >= 0.2:
+                    maxField = 10 # absolute value of maximum field
+                    Bz = self.joystick.get_axis(3)*maxField/1000
+                    fieldX = 0
+                    fieldY = 0
+                    fieldZ = Bz
+                else:
+                    fieldX = 0
+                    fieldY = 0
+                    fieldZ = 0
+
+            else: # with tilting angle
+                if sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2 and self.joystick.get_axis(1)<=0:
+                    maxField = 10
+                    theta = atan2(self.joystick.get_axis(0),-self.joystick.get_axis(1))
+                    Bx = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*cosd(self.params[0])*cos(theta)*maxField/1000
+                    By = sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*sin(theta)*maxField/1000
+                    Bz = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*sind(self.params[0])*cos(theta)*maxField/1000
+                    if abs(self.joystick.get_axis(3)) >= 0.2:
+                        Bx = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*cosd(self.params[0])*cos(theta)*maxField/1000-self.joystick.get_axis(3)*sind(self.params[0])*maxField/1000
+                        Bz = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*sind(self.params[0])*cos(theta)*maxField/1000+self.joystick.get_axis(3)*cosd(self.params[0])*maxField/1000
+                    fieldX = Bx
+                    fieldY = By
+                    fieldZ = Bz
+                elif sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2 and self.joystick.get_axis(1)>0: # maintain edge case (>180 deg or <0 deg)
+                    maxField = 10
+                    if self.joystick.get_axis(0)>0:
+                        Bx = 0
+                        By = sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*maxField/1000
+                        Bz = 0
+                        if abs(self.joystick.get_axis(3)) >= 0.2:
+                            Bx = -self.joystick.get_axis(3)*sind(self.params[0])*maxField/1000
+                            Bz = self.joystick.get_axis(3)*cosd(self.params[0])*maxField/1000
+                    else:
+                        Bx = 0
+                        By = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*maxField/1000
+                        Bz = 0
+                        if abs(self.joystick.get_axis(3)) >= 0.2:
+                            Bx = -self.joystick.get_axis(3)*sind(self.params[0])*maxField/1000
+                            Bz = self.joystick.get_axis(3)*cosd(self.params[0])*maxField/1000
+                    fieldX = Bx
+                    fieldY = By
+                    fieldZ = Bz
+                else:
+                    fieldX = 0
+                    fieldY = 0
+                    fieldZ = 0
+
+            self.field.B_Global_Desired[0] = fieldX
+            self.field.B_Global_Desired[1] = fieldY
+            self.field.B_Global_Desired[2] = fieldZ
+            self.field.setXYZ(self.field.B_Global_Desired)
+
+            if self.stopped:
+                return
+
+    def wrist_gripper_vertical(self):
+        startTime = time.time()
+        while True:
+            t = time.time() - startTime
+            if self.params[0] == 0: # 0 deg vertical plane
+                if sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2:
+                    if self.joystick.get_axis(1)<=0: # general control
+                        maxField = 10 # absolute value of maximum field
+                        Bz = -self.joystick.get_axis(0)*maxField/1000 # field Z, Left X-axis
+                        By = 0
+                        Bx = self.joystick.get_axis(1)*maxField/1000 # field X, Left Y-axis
+                    else: # maintain edge case (>180 deg or <0 deg)
+                        maxField = 10 # absolute value of maximum field
+                        if self.joystick.get_axis(0)>0:
+                            Bz = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*maxField/1000
+                            By = 0
+                            Bx = 0
+                        else:
+                            Bz = sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*maxField/1000
+                            By = 0
+                            Bx = 0
+                    if abs(self.joystick.get_axis(3)) >= 0.2:
+                        By = self.joystick.get_axis(3)*maxField/1000
+                    fieldX = Bx
+                    fieldY = By
+                    fieldZ = Bz
+                elif abs(self.joystick.get_axis(3)) >= 0.2:
+                    maxField = 10 # absolute value of maximum field
+                    By = self.joystick.get_axis(3)*maxField/1000
+                    fieldX = 0
+                    fieldY = By
+                    fieldZ = 0
+                else:
+                    fieldX = 0
+                    fieldY = 0
+                    fieldZ = 0
+
+            else: # with azimuthal angle, under testing
+                if sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2 and self.joystick.get_axis(1)<=0:
+                    maxField = 10
+                    theta = atan2(self.joystick.get_axis(0),-self.joystick.get_axis(1))
+                    Bx = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*cosd(self.params[0])*cos(theta)*maxField/1000
+                    By = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*sind(self.params[0])*cos(theta)*maxField/1000
+                    Bz = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*sin(theta)*maxField/1000
+                    if abs(self.joystick.get_axis(3)) >= 0.2:
+                        Bx = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*cosd(self.params[0])*cos(theta)*maxField/1000-self.joystick.get_axis(3)*sind(self.params[0])*maxField/1000
+                        By = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*sind(self.params[0])*cos(theta)*maxField/1000+self.joystick.get_axis(3)*cosd(self.params[0])*maxField/1000
+                    fieldX = Bx
+                    fieldY = By
+                    fieldZ = Bz
+                elif sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2 and self.joystick.get_axis(1)>0: # maintain edge case (>180 deg or <0 deg)
+                    maxField = 10
+                    if self.joystick.get_axis(0)>0:
+                        Bx = 0
+                        By = 0
+                        Bz = -sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*maxField/1000
+                        if abs(self.joystick.get_axis(3)) >= 0.2:
+                            Bx = -self.joystick.get_axis(3)*sind(self.params[0])*maxField/1000
+                            By = self.joystick.get_axis(3)*cosd(self.params[0])*maxField/1000
+                    else:
+                        Bx = 0
+                        By = 0
+                        Bz = sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2)*maxField/1000
+                        if abs(self.joystick.get_axis(3)) >= 0.2:
+                            Bx = -self.joystick.get_axis(3)*sind(self.params[0])*maxField/1000
+                            By = self.joystick.get_axis(3)*cosd(self.params[0])*maxField/1000
+                    fieldX = Bx
+                    fieldY = By
+                    fieldZ = Bz
+                else:
+                    fieldX = 0
+                    fieldY = 0
+                    fieldZ = 0
+
+            self.field.B_Global_Desired[0] = fieldX
+            self.field.B_Global_Desired[1] = fieldY
+            self.field.B_Global_Desired[2] = fieldZ
+            self.field.setXYZ(self.field.B_Global_Desired)
+
+            if self.stopped:
+                return
+
+    def cutting(self):
+        startTime = time.time()
+        while True:
+            t = time.time() - startTime
+            if sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2 and self.joystick.get_axis(1)<0:
+                phi = atan2(self.joystick.get_axis(0),-self.joystick.get_axis(1))
+            else:
+                phi = 0
+            if abs(self.joystick.get_axis(3)) >= 0.2:
+                freq = 1*self.joystick.get_axis(3)
+            else:
+                freq = 0
+            mag = 20
+            theta = 2 * pi * freq * t
+            if freq == 0:
+                fieldX = 0
+                fieldY = 0
+                fieldZ = 0
+            else:
+                fieldX = -mag * sin(phi) * cos(theta)
+                fieldY = mag * sin(theta)
+                fieldZ = mag * cos(phi) * cos(theta)
+
+            self.field.B_Global_Desired[0] = fieldX/1000
+            self.field.B_Global_Desired[1] = fieldY/1000
+            self.field.B_Global_Desired[2] = fieldZ/1000
+            self.field.setXYZ(self.field.B_Global_Desired)
+
             if self.stopped:
                 return
 # joystick button and axis definition, always commented

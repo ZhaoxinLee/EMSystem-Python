@@ -6,6 +6,9 @@ class Vision(object):
     def __init__(self,field):
         self.field = field
         self.cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 960)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 640)
+        self.cap.set(cv2.CAP_PROP_FPS, 30)
         if (self.cap.isOpened() == False):
             self.cap = cv2.VideoCapture("NoInput.mp4")
             self.frameCounter = 0
@@ -15,7 +18,7 @@ class Vision(object):
 
         cv2.namedWindow(self.windowName(),16)
         cv2.moveWindow(self.windowName(), 0, 0)
-        cv2.resizeWindow(self.windowName(), 640,480)
+        cv2.resizeWindow(self.windowName(), 960,640)
 
         self._isGrayscale = False
         self._isThresholdRunning = False
@@ -87,7 +90,8 @@ class Vision(object):
 
     def getFrameRate(self):
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        return(self.fps)
+        print(self.fps)
+        return self.fps
 
     def isGrayscale(self):
         return self._isGrayscale

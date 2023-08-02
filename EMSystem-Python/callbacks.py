@@ -37,7 +37,7 @@ class GUI(QMainWindow,Ui_MainWindow):
     def __init__(self):
         QMainWindow.__init__(self,None,Qt.WindowStaysOnTopHint)
         Ui_MainWindow.__init__(self)
-        self.updateRate = 15 # (ms) update rate of the GUI, vision, plot
+        self.updateRate = 6 # (ms) update rate of the GUI, vision, plot
         self.measuredData = [0]*16
         self.aiVoltage = [0]*16
         self.B_Global_Desired = [0]*8

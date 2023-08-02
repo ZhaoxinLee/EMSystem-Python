@@ -87,7 +87,7 @@ class Vision2(object):
 
     def getFrameRate(self):
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        return(self.fps)
+        return self.fps
 
     def isGrayscale(self):
         return self._isGrayscale
