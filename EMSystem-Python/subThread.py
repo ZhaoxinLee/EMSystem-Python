@@ -539,28 +539,112 @@ class SubThread(QThread):
             if self.stopped:
                 return
 
+    # def cutting_old(self):
+    #     startTime = time.time()
+    #     while True:
+    #         t = time.time() - startTime
+    #         if sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2 and self.joystick.get_axis(1)<0:
+    #             phi = atan2(self.joystick.get_axis(0),-self.joystick.get_axis(1))
+    #         else:
+    #             phi = 0
+    #         if abs(self.joystick.get_axis(3)) >= 0.2:
+    #             freq = 1*self.joystick.get_axis(3)
+    #         else:
+    #             freq = 0
+    #         mag = 20
+    #         theta = 2 * pi * freq * t
+    #         if freq == 0:
+    #             fieldX = 0
+    #             fieldY = 0
+    #             fieldZ = 0
+    #         else:
+    #             fieldX = -mag * sin(phi) * cos(theta)
+    #             fieldY = mag * sin(theta)
+    #             fieldZ = mag * cos(phi) * cos(theta)
+    #
+    #         self.field.B_Global_Desired[0] = fieldX/1000
+    #         self.field.B_Global_Desired[1] = fieldY/1000
+    #         self.field.B_Global_Desired[2] = fieldZ/1000
+    #         self.field.setXYZ(self.field.B_Global_Desired)
+    #
+    #         if self.stopped:
+    #             return
+
     def cutting(self):
         startTime = time.time()
         while True:
             t = time.time() - startTime
-            if sqrt(self.joystick.get_axis(0)**2+self.joystick.get_axis(1)**2) >= 0.2 and self.joystick.get_axis(1)<0:
-                phi = atan2(self.joystick.get_axis(0),-self.joystick.get_axis(1))
-            else:
-                phi = 0
-            if abs(self.joystick.get_axis(3)) >= 0.2:
-                freq = 1*self.joystick.get_axis(3)
-            else:
-                freq = 0
-            mag = 20
-            theta = 2 * pi * freq * t
-            if freq == 0:
-                fieldX = 0
-                fieldY = 0
-                fieldZ = 0
-            else:
-                fieldX = -mag * sin(phi) * cos(theta)
-                fieldY = mag * sin(theta)
-                fieldZ = mag * cos(phi) * cos(theta)
+            freq = 1
+
+            # q components
+            q_1 = radians(30) # angle to be modified
+            q_2 = radians(30) # angle to be modified
+            q_3 = radians(2 * pi * freq * t)
+
+            # n_3 components
+            n_3x = -cos(q_1) * sin(q_3) - cos(q_3) * sin(q_1) * sin(q_2)
+            n_3y = -sin(q_1) * sin(q_3) + cos(q_1) * cos(q_3) * sin(q_2)
+            n_3z = -cos(q_2) * cos(q_3)
+
+            # a_3 components
+            a_3x = -cos(q_2) * sin(q_1)
+            a_3y = cos(q_1) * cos(q_2)
+            a_3z = sin(q_2)
+
+            # n_2 components
+            n_2x = -sin(q_1) * sin(q_2)
+            n_2y = cos(q_1) * sin(q_2)
+            n_2z = -cos(q_2)
+
+            # a_2 components
+            a_2x = cos(q_1)
+            a_2y = sin(q_1)
+            a_2z = 0
+
+            # a_1 components
+            a_1x = 0
+            a_1y = 0
+            a_1z = 1
+
+            # h components
+            h_1 = n_3z * a_3y - n_3y * a_3z
+            h_2 = n_3x * a_3z - n_3z * a_3x
+            h_3 = n_3y * a_3x - n_3x * a_3y
+
+            # s components
+            s_1 = n_3z * a_2y - n_3y * a_2z
+            s_2 = n_3x * a_2z - n_3z * a_2x
+            s_3 = n_3y * a_2x - n_3x * a_2y
+
+            # f components
+            f_1 = -n_3y * a_1z
+            f_2 = n_3x * a_1z
+            f_3 = 0
+
+            J_3 = 1 # moment of inertia to be modified
+            q_3ddot = 0
+            tau_f3 = 0 # friction torque to be modified
+            tau_tissue = 1 # tissue torque to be modified
+            X_1 = J_3 * q_3ddot + tau_f3 + tau_tissue
+
+            m_3 = 0.001 # mass to be modified, unit kg
+            g = 9.8
+            l_2 = 0.005 # link length to be modified, unit meter
+            J_2 = 1 # moment of inertia to be modified
+            q_2ddot = 0
+            tau_f2 = 0 # friction torque to be modified
+            X_2 = -m_3 * g * l_2 * sin(q_2) + J_2 * q_2ddot + tau_f2
+
+            J_1 = 1 # moment of inertia to be modified
+            q_1ddot = 0
+            tau_f1 = 0 # friction torque to be modified
+            X_3 = J_1 * q_1ddot + tau_f1
+
+            m = 1 # magnetic moment of magnet
+
+            fieldX = -(f_3 * s_2 * X_1 - f_2 * s_3 * X_1 + f_2 * h_3 * X_2 - f_3 * h_2 * X_2 + h_2 * s_3 * X_3 - h_3 * s_2 * X_3) / (m * (f_3 * h_2 * s_1 - f_2 * h_3 * s_1 - f_3 * h_1 * s_2 + f_1 * h_3 * s_2 + f_2 * h_1 * s_3 - f_1 * h_2 * s_3))
+            fieldY = -(f_1 * s_3 * X_1 - f_3 * s_1 * X_1 + f_3 * h_1 * X_2 - f_1 * h_3 * X_2 + h_3 * s_1 * X_3 - h_1 * s_3 * X_3) / (m * (f_3 * h_2 * s_1 - f_2 * h_3 * s_1 - f_3 * h_1 * s_2 + f_1 * h_3 * s_2 + f_2 * h_1 * s_3 - f_1 * h_2 * s_3))
+            fieldZ = -(f_2 * s_1 * X_1 - f_1 * s_2 * X_1 + f_1 * h_2 * X_2 - f_2 * h_1 * X_2 + h_1 * s_2 * X_3 - h_2 * s_1 * X_3) / (m * (f_3 * h_2 * s_1 - f_2 * h_3 * s_1 - f_3 * h_1 * s_2 + f_1 * h_3 * s_2 + f_2 * h_1 * s_3 - f_1 * h_2 * s_3))
 
             self.field.B_Global_Desired[0] = fieldX/1000
             self.field.B_Global_Desired[1] = fieldY/1000
