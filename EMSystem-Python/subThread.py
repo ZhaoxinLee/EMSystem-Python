@@ -579,7 +579,7 @@ class SubThread(QThread):
             # q components
             q_1 = radians(30) # angle to be modified
             q_2 = radians(30) # angle to be modified
-            q_3 = radians(2 * pi * freq * t)
+            q_3 = radians(2 * pi * freq * t) # constant speed
 
             # n_3 components
             n_3x = -cos(q_1) * sin(q_3) - cos(q_3) * sin(q_1) * sin(q_2)
